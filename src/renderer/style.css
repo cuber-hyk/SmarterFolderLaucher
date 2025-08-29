@@ -460,6 +460,39 @@ body {
   flex-wrap: wrap;
 }
 
+/* 项目信息容器 */
+.project-info-container {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+}
+
+.project-description {
+  font-size: 12px;
+  color: #666;
+  word-wrap: break-word;
+  line-height: 1.4;
+  margin-bottom: 4px;
+}
+
+.project-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.project-actions .btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+}
+
+.project-actions .btn svg {
+  flex-shrink: 0;
+}
+
 /* 设置操作按钮 */
 .setting-actions {
   display: flex;
@@ -697,7 +730,26 @@ body.dark-theme .update-status {
 /* 蓝色主题 */
 body.blue-theme {
   background: #0f1419;
-  color: #e6f1ff;
+  color: #ffffff;
+}
+
+body.blue-theme .folder-name {
+  color: #ffffff;
+  font-weight: 500;
+}
+
+body.blue-theme .folder-path {
+  color: #b3d9ff;
+}
+
+body.blue-theme .setting-item label {
+  color: #ffffff;
+  font-weight: 500;
+}
+
+body.blue-theme .update-status,
+body.blue-theme .project-description {
+  color: #b3d9ff;
 }
 
 body.blue-theme .app {
@@ -718,7 +770,7 @@ body.blue-theme .search-container {
 body.blue-theme .search-input {
   background: rgba(30, 64, 175, 0.1);
   border: 2px solid rgba(59, 130, 246, 0.3);
-  color: #e6f1ff;
+  color: #ffffff;
 }
 
 body.blue-theme .search-input:focus {
@@ -764,6 +816,25 @@ body.blue-theme .btn-save:hover {
 body.green-theme {
   background: #0f1b0f;
   color: #e6ffe6;
+}
+
+body.green-theme .folder-name {
+  color: #ffffff;
+  font-weight: 500;
+}
+
+body.green-theme .folder-path {
+  color: #b3ffb3;
+}
+
+body.green-theme .setting-item label {
+  color: #ffffff;
+  font-weight: 500;
+}
+
+body.green-theme .update-status,
+body.green-theme .project-description {
+  color: #b3ffb3;
 }
 
 body.green-theme .app {
@@ -832,6 +903,25 @@ body.purple-theme {
   color: #f3e6ff;
 }
 
+body.purple-theme .folder-name {
+  color: #ffffff;
+  font-weight: 500;
+}
+
+body.purple-theme .folder-path {
+  color: #e6ccff;
+}
+
+body.purple-theme .setting-item label {
+  color: #ffffff;
+  font-weight: 500;
+}
+
+body.purple-theme .update-status,
+body.purple-theme .project-description {
+  color: #e6ccff;
+}
+
 body.purple-theme .app {
   background: rgba(26, 15, 26, 0.95);
   border: 1px solid rgba(147, 51, 234, 0.3);
@@ -898,6 +988,25 @@ body.orange-theme {
   color: #fff4e6;
 }
 
+body.orange-theme .folder-name {
+  color: #ffffff;
+  font-weight: 500;
+}
+
+body.orange-theme .folder-path {
+  color: #ffcc99;
+}
+
+body.orange-theme .setting-item label {
+  color: #ffffff;
+  font-weight: 500;
+}
+
+body.orange-theme .update-status,
+body.orange-theme .project-description {
+  color: #ffcc99;
+}
+
 body.orange-theme .app {
   background: rgba(26, 15, 10, 0.95);
   border: 1px solid rgba(249, 115, 22, 0.3);
@@ -961,7 +1070,7 @@ body.orange-theme .btn-save:hover {
 /* 柔和暗色主题 */
 body.soft-dark-theme {
   background: #1a1a1a;
-  color: #e8e8e8;
+  color: #ffffff;
 }
 
 body.soft-dark-theme .app {
@@ -983,7 +1092,7 @@ body.soft-dark-theme .search-container {
 body.soft-dark-theme .search-input {
   background: rgba(74, 74, 74, 0.1);
   border: 2px solid rgba(128, 128, 128, 0.3);
-  color: #e8e8e8;
+  color: #ffffff;
 }
 
 body.soft-dark-theme .search-input:focus {
@@ -1016,15 +1125,25 @@ body.soft-dark-theme .settings-header {
   background: linear-gradient(135deg, #4a4a4a 0%, #5a5a5a 100%);
 }
 
+body.soft-dark-theme .folder-name {
+  color: #ffffff;
+  font-weight: 500;
+}
+
+body.soft-dark-theme .folder-path {
+  color: #cccccc;
+}
+
 body.soft-dark-theme .setting-item label {
-  color: #e8e8e8;
+  color: #ffffff;
+  font-weight: 500;
 }
 
 body.soft-dark-theme .setting-item input,
 body.soft-dark-theme .setting-item select {
   background: #1a1a1a;
   border: 1px solid rgba(128, 128, 128, 0.3);
-  color: #e8e8e8;
+  color: #ffffff;
 }
 
 body.soft-dark-theme .btn-save {
@@ -1036,8 +1155,9 @@ body.soft-dark-theme .btn-save:hover {
   background: #777777;
 }
 
-body.soft-dark-theme .update-status {
-  color: #b8b8b8;
+body.soft-dark-theme .update-status,
+body.soft-dark-theme .project-description {
+  color: #cccccc;
 }
 
 /* 柔和亮色主题 */
@@ -1107,7 +1227,22 @@ body.soft-light-theme .btn-save:hover {
   background: #868e96;
 }
 
-body.soft-light-theme .update-status {
+body.soft-light-theme .folder-name {
+  color: #212529;
+  font-weight: 500;
+}
+
+body.soft-light-theme .folder-path {
+  color: #6c757d;
+}
+
+body.soft-light-theme .setting-item label {
+  color: #212529;
+  font-weight: 500;
+}
+
+body.soft-light-theme .update-status,
+body.soft-light-theme .project-description {
   color: #6c757d;
 }
 

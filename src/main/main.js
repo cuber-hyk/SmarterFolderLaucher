@@ -276,9 +276,23 @@ class SmarterFolderLauncher {
       }
       try {
         const result = await autoUpdater.checkForUpdates();
-        return { success: true, data: result };
+        if (result && result.updateInfo) {
+          return { success: true, data: result };
+        } else {
+          return { success: true, message: '当前已是最新版本' };
+        }
       } catch (error) {
-        return { success: false, error: error.message };
+        console.error('更新检查失败:', error);
+        // 提供更友好的错误信息
+        let errorMessage = '检查更新失败';
+        if (error.message.includes('net::ERR_INTERNET_DISCONNECTED')) {
+          errorMessage = '网络连接失败，请检查网络连接后重试';
+        } else if (error.message.includes('net::ERR_NAME_NOT_RESOLVED')) {
+          errorMessage = '无法连接到更新服务器，请检查网络连接';
+        } else if (error.message.includes('404')) {
+          errorMessage = '更新服务暂时不可用，请稍后重试';
+        }
+        return { success: false, message: errorMessage };
       }
     });
 
@@ -368,6 +382,17 @@ class SmarterFolderLauncher {
         addFolder: this.currentAddFolderHotkey
       }
     })
+
+    // 打开外部链接
+    ipcMain.handle('open-external', async (event, url) => {
+      try {
+        await shell.openExternal(url)
+        return { success: true }
+      } catch (error) {
+        console.error('打开外部链接失败:', error)
+        return { success: false, error: error.message }
+      }
+    })
   }
 
   showWindow() {
@@ -416,6 +441,11 @@ class SmarterFolderLauncher {
       if (this.database) {
         await this.database.addFolder({ name, path })
         console.log('文件夹添加成功:', name)
+        
+        // 通知渲染进程刷新文件夹列表
+        if (this.mainWindow && !this.mainWindow.isDestroyed()) {
+          this.mainWindow.webContents.send('folder-added')
+        }
       }
     }
   }

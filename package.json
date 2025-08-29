@@ -7,7 +7,7 @@
     "dev": "concurrently \"npm run dev:renderer\" \"npm run dev:main\"",
     "dev:renderer": "vite",
     "dev:main": "electron src/main/main.js",
-    "build": "npm run build:renderer && npm run build:main",
+    "build": "npm run build:renderer && npm run app:dist",
     "build:renderer": "vite build",
     "app:dist": "electron-builder",
     "start": "electron src/main/main.js",

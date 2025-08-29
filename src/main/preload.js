@@ -17,6 +17,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   // 设置
   openSettings: () => ipcRenderer.invoke('open-settings'),
   onOpenSettings: (callback) => ipcRenderer.on('open-settings-page', callback),
+  onFolderAdded: (callback) => ipcRenderer.on('folder-added', callback),
   updateHotkey: (newHotkey) => ipcRenderer.invoke('update-hotkey', newHotkey),
   updateAddFolderHotkey: (newHotkey) => ipcRenderer.invoke('update-add-folder-hotkey', newHotkey),
   
@@ -24,6 +25,9 @@ contextBridge.exposeInMainWorld('electronAPI', {
   checkForUpdates: () => ipcRenderer.invoke('check-for-updates'),
   downloadUpdate: () => ipcRenderer.invoke('download-update'),
   quitAndInstall: () => ipcRenderer.invoke('quit-and-install'),
+  
+  // 外部链接
+  openExternal: (url) => ipcRenderer.invoke('open-external', url),
   
   // 平台信息
   platform: process.platform
