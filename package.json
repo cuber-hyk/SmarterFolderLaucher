@@ -36,7 +36,11 @@
     "bindings": "^1.5.0",
     "electron-updater": "^6.6.2",
     "file-uri-to-path": "^2.0.0",
+    "fs-extra": "^11.3.1",
+    "graceful-fs": "^4.2.11",
+    "jsonfile": "^6.2.0",
     "pinyin": "^4.0.0",
+    "universalify": "^2.0.1",
     "vue": "^3.5.20"
   },
   "build": {
@@ -68,12 +72,20 @@
     },
     "nsis": {
       "oneClick": false,
+      "allowElevation": true,
+      "allowToChangeInstallationDirectory": true,
+      "installerIcon": "./assets/icon.ico",
+      "uninstallerIcon": "./assets/icon.ico",
+      "installerHeaderIcon": "./assets/icon.ico",
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
       "shortcutName": "智能文件夹启动器",
-      "allowToChangeInstallationDirectory": true
+      "runAfterFinish": true,
+      "deleteAppDataOnUninstall": false
     },
     "publish": {
       "provider": "github",
-      "owner": "your-github-username",
+      "owner": "cuber-hyk",
       "repo": "SmarterFolderLauncher"
     }
   }
