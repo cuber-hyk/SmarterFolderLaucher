@@ -41,7 +41,7 @@ class DatabaseManager {
 
   createTables() {
     try {
-      const sql = `
+      const foldersSql = `
         CREATE TABLE IF NOT EXISTS folders (
           id INTEGER PRIMARY KEY AUTOINCREMENT,
           name TEXT NOT NULL,
@@ -54,14 +54,49 @@ class DatabaseManager {
         )
       `
       
-      this.db.exec(sql)
+      const settingsSql = `
+        CREATE TABLE IF NOT EXISTS settings (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          key TEXT NOT NULL UNIQUE,
+          value TEXT NOT NULL,
+          created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+          updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+        )
+      `
+      
+      this.db.exec(foldersSql)
+      this.db.exec(settingsSql)
       console.log('数据表创建成功')
+      
+      // 初始化默认设置
+      this.initDefaultSettings()
       
       // 检查并添加缺失的列（用于数据库迁移）
       this.migrateDatabase()
     } catch (err) {
       console.error('创建表失败:', err)
       throw err
+    }
+  }
+
+  initDefaultSettings() {
+    try {
+      const defaultSettings = [
+        { key: 'hotkey_add_folder', value: 'CommandOrControl+Alt+A' },
+        { key: 'theme', value: 'light' }
+      ]
+      
+      const insertSetting = this.db.prepare(`
+        INSERT OR IGNORE INTO settings (key, value) VALUES (?, ?)
+      `)
+      
+      for (const setting of defaultSettings) {
+        insertSetting.run(setting.key, setting.value)
+      }
+      
+      console.log('默认设置初始化完成')
+    } catch (err) {
+      console.error('初始化默认设置失败:', err)
     }
   }
 
@@ -118,22 +153,13 @@ class DatabaseManager {
       const { name, path, icon = null, color = '#007acc' } = folderData
       
       // 生成拼音用于搜索
-      let pinyin = ''
+      let pinyin = name // 默认使用原名称
       try {
         const pinyinLib = require('pinyin')
-        if (typeof pinyinLib === 'function') {
-          const pinyinResult = pinyinLib(name, { style: pinyinLib.STYLE_NORMAL })
-          pinyin = pinyinResult.flat().join('')
-        } else if (pinyinLib.default && typeof pinyinLib.default === 'function') {
-          const pinyinResult = pinyinLib.default(name, { style: pinyinLib.default.STYLE_NORMAL })
-          pinyin = pinyinResult.flat().join('')
-        } else {
-          console.warn('pinyin模块导入异常，使用原名称')
-          pinyin = name
-        }
+        const pinyinResult = pinyinLib(name, { style: pinyinLib.STYLE_NORMAL })
+        pinyin = pinyinResult.flat().join('')
       } catch (error) {
-        console.warn('拼音生成失败:', error)
-        pinyin = name // 如果拼音生成失败，使用原名称
+        console.warn('拼音生成失败，使用原名称:', error.message)
       }
       
       const sql = `
@@ -229,6 +255,63 @@ class DatabaseManager {
     } catch (err) {
       console.error('搜索文件夹失败:', err)
       throw err
+    }
+  }
+
+  // 设置相关方法
+  getSetting(key) {
+    try {
+      if (!this.db) {
+        throw new Error('数据库未初始化')
+      }
+      
+      const stmt = this.db.prepare('SELECT value FROM settings WHERE key = ?')
+      const result = stmt.get(key)
+      return result ? result.value : null
+    } catch (err) {
+      console.error('获取设置失败:', err)
+      return null
+    }
+  }
+
+  setSetting(key, value) {
+    try {
+      if (!this.db) {
+        throw new Error('数据库未初始化')
+      }
+      
+      const stmt = this.db.prepare(`
+        INSERT OR REPLACE INTO settings (key, value, updated_at) 
+        VALUES (?, ?, CURRENT_TIMESTAMP)
+      `)
+      
+      const result = stmt.run(key, value)
+      console.log(`设置 ${key} 更新成功`)
+      return result.changes > 0
+    } catch (err) {
+      console.error('设置保存失败:', err)
+      return false
+    }
+  }
+
+  getAllSettings() {
+    try {
+      if (!this.db) {
+        throw new Error('数据库未初始化')
+      }
+      
+      const stmt = this.db.prepare('SELECT key, value FROM settings')
+      const results = stmt.all()
+      
+      const settings = {}
+      results.forEach(row => {
+        settings[row.key] = row.value
+      })
+      
+      return settings
+    } catch (err) {
+      console.error('获取所有设置失败:', err)
+      return {}
     }
   }
 

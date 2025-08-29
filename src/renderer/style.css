@@ -334,9 +334,11 @@ body {
   background: white;
   border-radius: 12px;
   width: 320px;
-  max-height: 400px;
+  max-height: 80vh;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
   overflow: hidden;
+  display: flex;
+  flex-direction: column;
 }
 
 .settings-header {
@@ -370,6 +372,8 @@ body {
 
 .settings-content {
   padding: 20px;
+  overflow-y: auto;
+  flex: 1;
 }
 
 .setting-item {
@@ -433,6 +437,27 @@ body {
 .color-option.active {
   border-color: #333;
   transform: scale(1.2);
+}
+
+/* 更新信息容器 */
+.update-info-container {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+}
+
+.update-status {
+  font-size: 12px;
+  color: #666;
+  word-wrap: break-word;
+  line-height: 1.4;
+}
+
+.update-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
 }
 
 /* 设置操作按钮 */
@@ -663,6 +688,427 @@ body.dark-theme .btn-save:hover {
   background: #2ea043;
   color: #ffffff;
   box-shadow: 0 4px 12px rgba(35, 134, 54, 0.3);
+}
+
+body.dark-theme .update-status {
+  color: #8b949e;
+}
+
+/* 蓝色主题 */
+body.blue-theme {
+  background: #0f1419;
+  color: #e6f1ff;
+}
+
+body.blue-theme .app {
+  background: rgba(15, 20, 25, 0.95);
+  border: 1px solid rgba(59, 130, 246, 0.3);
+  box-shadow: 0 8px 32px rgba(59, 130, 246, 0.2);
+}
+
+body.blue-theme .title-bar {
+  background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
+}
+
+body.blue-theme .search-container {
+  background: rgba(30, 64, 175, 0.1);
+  border-bottom: 1px solid rgba(59, 130, 246, 0.2);
+}
+
+body.blue-theme .search-input {
+  background: rgba(30, 64, 175, 0.1);
+  border: 2px solid rgba(59, 130, 246, 0.3);
+  color: #e6f1ff;
+}
+
+body.blue-theme .search-input:focus {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3);
+}
+
+body.blue-theme .folder-item {
+  background: rgba(30, 64, 175, 0.1);
+  border: 1px solid rgba(59, 130, 246, 0.2);
+}
+
+body.blue-theme .folder-item:hover {
+  background: rgba(59, 130, 246, 0.2);
+  border-color: #3b82f6;
+}
+
+body.blue-theme .bottom-bar {
+  background: rgba(30, 64, 175, 0.2);
+  border-top: 1px solid rgba(59, 130, 246, 0.3);
+}
+
+body.blue-theme .settings-panel {
+  background: #1e293b;
+  border: 1px solid rgba(59, 130, 246, 0.3);
+  box-shadow: 0 16px 48px rgba(59, 130, 246, 0.3);
+}
+
+body.blue-theme .settings-header {
+  background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
+}
+
+body.blue-theme .btn-save {
+  background: #3b82f6;
+  border: 1px solid #60a5fa;
+}
+
+body.blue-theme .btn-save:hover {
+  background: #60a5fa;
+}
+
+/* 绿色主题 */
+body.green-theme {
+  background: #0f1b0f;
+  color: #e6ffe6;
+}
+
+body.green-theme .app {
+  background: rgba(15, 27, 15, 0.95);
+  border: 1px solid rgba(34, 197, 94, 0.3);
+  box-shadow: 0 8px 32px rgba(34, 197, 94, 0.2);
+}
+
+body.green-theme .title-bar {
+  background: linear-gradient(135deg, #15803d 0%, #22c55e 100%);
+}
+
+body.green-theme .search-container {
+  background: rgba(21, 128, 61, 0.1);
+  border-bottom: 1px solid rgba(34, 197, 94, 0.2);
+}
+
+body.green-theme .search-input {
+  background: rgba(21, 128, 61, 0.1);
+  border: 2px solid rgba(34, 197, 94, 0.3);
+  color: #e6ffe6;
+}
+
+body.green-theme .search-input:focus {
+  border-color: #22c55e;
+  box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.3);
+}
+
+body.green-theme .folder-item {
+  background: rgba(21, 128, 61, 0.1);
+  border: 1px solid rgba(34, 197, 94, 0.2);
+}
+
+body.green-theme .folder-item:hover {
+  background: rgba(34, 197, 94, 0.2);
+  border-color: #22c55e;
+}
+
+body.green-theme .bottom-bar {
+  background: rgba(21, 128, 61, 0.2);
+  border-top: 1px solid rgba(34, 197, 94, 0.3);
+}
+
+body.green-theme .settings-panel {
+  background: #1a2e1a;
+  border: 1px solid rgba(34, 197, 94, 0.3);
+  box-shadow: 0 16px 48px rgba(34, 197, 94, 0.3);
+}
+
+body.green-theme .settings-header {
+  background: linear-gradient(135deg, #15803d 0%, #22c55e 100%);
+}
+
+body.green-theme .btn-save {
+  background: #22c55e;
+  border: 1px solid #4ade80;
+}
+
+body.green-theme .btn-save:hover {
+  background: #4ade80;
+}
+
+/* 紫色主题 */
+body.purple-theme {
+  background: #1a0f1a;
+  color: #f3e6ff;
+}
+
+body.purple-theme .app {
+  background: rgba(26, 15, 26, 0.95);
+  border: 1px solid rgba(147, 51, 234, 0.3);
+  box-shadow: 0 8px 32px rgba(147, 51, 234, 0.2);
+}
+
+body.purple-theme .title-bar {
+  background: linear-gradient(135deg, #7c3aed 0%, #a855f7 100%);
+}
+
+body.purple-theme .search-container {
+  background: rgba(124, 58, 237, 0.1);
+  border-bottom: 1px solid rgba(147, 51, 234, 0.2);
+}
+
+body.purple-theme .search-input {
+  background: rgba(124, 58, 237, 0.1);
+  border: 2px solid rgba(147, 51, 234, 0.3);
+  color: #f3e6ff;
+}
+
+body.purple-theme .search-input:focus {
+  border-color: #a855f7;
+  box-shadow: 0 0 0 3px rgba(147, 51, 234, 0.3);
+}
+
+body.purple-theme .folder-item {
+  background: rgba(124, 58, 237, 0.1);
+  border: 1px solid rgba(147, 51, 234, 0.2);
+}
+
+body.purple-theme .folder-item:hover {
+  background: rgba(147, 51, 234, 0.2);
+  border-color: #a855f7;
+}
+
+body.purple-theme .bottom-bar {
+  background: rgba(124, 58, 237, 0.2);
+  border-top: 1px solid rgba(147, 51, 234, 0.3);
+}
+
+body.purple-theme .settings-panel {
+  background: #2e1a2e;
+  border: 1px solid rgba(147, 51, 234, 0.3);
+  box-shadow: 0 16px 48px rgba(147, 51, 234, 0.3);
+}
+
+body.purple-theme .settings-header {
+  background: linear-gradient(135deg, #7c3aed 0%, #a855f7 100%);
+}
+
+body.purple-theme .btn-save {
+  background: #a855f7;
+  border: 1px solid #c084fc;
+}
+
+body.purple-theme .btn-save:hover {
+  background: #c084fc;
+}
+
+/* 橙色主题 */
+body.orange-theme {
+  background: #1a0f0a;
+  color: #fff4e6;
+}
+
+body.orange-theme .app {
+  background: rgba(26, 15, 10, 0.95);
+  border: 1px solid rgba(249, 115, 22, 0.3);
+  box-shadow: 0 8px 32px rgba(249, 115, 22, 0.2);
+}
+
+body.orange-theme .title-bar {
+  background: linear-gradient(135deg, #ea580c 0%, #f97316 100%);
+}
+
+body.orange-theme .search-container {
+  background: rgba(234, 88, 12, 0.1);
+  border-bottom: 1px solid rgba(249, 115, 22, 0.2);
+}
+
+body.orange-theme .search-input {
+  background: rgba(234, 88, 12, 0.1);
+  border: 2px solid rgba(249, 115, 22, 0.3);
+  color: #fff4e6;
+}
+
+body.orange-theme .search-input:focus {
+  border-color: #f97316;
+  box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.3);
+}
+
+body.orange-theme .folder-item {
+  background: rgba(234, 88, 12, 0.1);
+  border: 1px solid rgba(249, 115, 22, 0.2);
+}
+
+body.orange-theme .folder-item:hover {
+  background: rgba(249, 115, 22, 0.2);
+  border-color: #f97316;
+}
+
+body.orange-theme .bottom-bar {
+  background: rgba(234, 88, 12, 0.2);
+  border-top: 1px solid rgba(249, 115, 22, 0.3);
+}
+
+body.orange-theme .settings-panel {
+  background: #2e1a0f;
+  border: 1px solid rgba(249, 115, 22, 0.3);
+  box-shadow: 0 16px 48px rgba(249, 115, 22, 0.3);
+}
+
+body.orange-theme .settings-header {
+  background: linear-gradient(135deg, #ea580c 0%, #f97316 100%);
+}
+
+body.orange-theme .btn-save {
+  background: #f97316;
+  border: 1px solid #fb923c;
+}
+
+body.orange-theme .btn-save:hover {
+  background: #fb923c;
+}
+
+/* 柔和暗色主题 */
+body.soft-dark-theme {
+  background: #1a1a1a;
+  color: #e8e8e8;
+}
+
+body.soft-dark-theme .app {
+  background: rgba(26, 26, 26, 0.95);
+  border: 1px solid rgba(128, 128, 128, 0.2);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+body.soft-dark-theme .title-bar {
+  background: linear-gradient(135deg, #4a4a4a 0%, #5a5a5a 100%);
+  color: #ffffff;
+}
+
+body.soft-dark-theme .search-container {
+  background: rgba(74, 74, 74, 0.1);
+  border-bottom: 1px solid rgba(128, 128, 128, 0.2);
+}
+
+body.soft-dark-theme .search-input {
+  background: rgba(74, 74, 74, 0.1);
+  border: 2px solid rgba(128, 128, 128, 0.3);
+  color: #e8e8e8;
+}
+
+body.soft-dark-theme .search-input:focus {
+  border-color: #888888;
+  box-shadow: 0 0 0 3px rgba(128, 128, 128, 0.2);
+}
+
+body.soft-dark-theme .folder-item {
+  background: rgba(74, 74, 74, 0.1);
+  border: 1px solid rgba(128, 128, 128, 0.2);
+}
+
+body.soft-dark-theme .folder-item:hover {
+  background: rgba(128, 128, 128, 0.2);
+  border-color: #888888;
+}
+
+body.soft-dark-theme .bottom-bar {
+  background: rgba(74, 74, 74, 0.2);
+  border-top: 1px solid rgba(128, 128, 128, 0.3);
+}
+
+body.soft-dark-theme .settings-panel {
+  background: #2a2a2a;
+  border: 1px solid rgba(128, 128, 128, 0.3);
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.4);
+}
+
+body.soft-dark-theme .settings-header {
+  background: linear-gradient(135deg, #4a4a4a 0%, #5a5a5a 100%);
+}
+
+body.soft-dark-theme .setting-item label {
+  color: #e8e8e8;
+}
+
+body.soft-dark-theme .setting-item input,
+body.soft-dark-theme .setting-item select {
+  background: #1a1a1a;
+  border: 1px solid rgba(128, 128, 128, 0.3);
+  color: #e8e8e8;
+}
+
+body.soft-dark-theme .btn-save {
+  background: #666666;
+  border: 1px solid #777777;
+}
+
+body.soft-dark-theme .btn-save:hover {
+  background: #777777;
+}
+
+body.soft-dark-theme .update-status {
+  color: #b8b8b8;
+}
+
+/* 柔和亮色主题 */
+body.soft-light-theme {
+  background: #f8f9fa;
+  color: #495057;
+}
+
+body.soft-light-theme .app {
+  background: rgba(248, 249, 250, 0.95);
+  border: 1px solid rgba(173, 181, 189, 0.3);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+}
+
+body.soft-light-theme .title-bar {
+  background: linear-gradient(135deg, #6c757d 0%, #868e96 100%);
+  color: #ffffff;
+}
+
+body.soft-light-theme .search-container {
+  background: rgba(108, 117, 125, 0.05);
+  border-bottom: 1px solid rgba(173, 181, 189, 0.2);
+}
+
+body.soft-light-theme .search-input {
+  background: rgba(108, 117, 125, 0.05);
+  border: 2px solid rgba(173, 181, 189, 0.3);
+  color: #495057;
+}
+
+body.soft-light-theme .search-input:focus {
+  border-color: #6c757d;
+  box-shadow: 0 0 0 3px rgba(108, 117, 125, 0.2);
+}
+
+body.soft-light-theme .folder-item {
+  background: rgba(108, 117, 125, 0.05);
+  border: 1px solid rgba(173, 181, 189, 0.2);
+}
+
+body.soft-light-theme .folder-item:hover {
+  background: rgba(173, 181, 189, 0.2);
+  border-color: #6c757d;
+}
+
+body.soft-light-theme .bottom-bar {
+  background: rgba(108, 117, 125, 0.1);
+  border-top: 1px solid rgba(173, 181, 189, 0.3);
+}
+
+body.soft-light-theme .settings-panel {
+  background: #ffffff;
+  border: 1px solid rgba(173, 181, 189, 0.3);
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.15);
+}
+
+body.soft-light-theme .settings-header {
+  background: linear-gradient(135deg, #6c757d 0%, #868e96 100%);
+}
+
+body.soft-light-theme .btn-save {
+  background: #6c757d;
+  border: 1px solid #868e96;
+}
+
+body.soft-light-theme .btn-save:hover {
+  background: #868e96;
+}
+
+body.soft-light-theme .update-status {
+  color: #6c757d;
 }
 
 /* 响应式设计 */

@@ -66,8 +66,7 @@
       </button>
       <button class="action-btn" @click="refreshFolders" title="刷新">
         <svg width="16" height="16" viewBox="0 0 16 16">
-          <path d="M1 4V10A6 6 0 0 0 13 10V9" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-          <path d="M3 4H1L3 2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M8 3V1L5 4L8 7V5C10.2 5 12 6.8 12 9S10.2 13 8 13S4 11.2 4 9H2C2 12.3 4.7 15 8 15S14 12.3 14 9S11.3 3 8 3Z" fill="currentColor"/>
         </svg>
         刷新
       </button>
@@ -149,6 +148,9 @@
             <select v-model="settings.theme" @change="applyTheme">
               <option value="light">浅色主题</option>
               <option value="dark">深色主题</option>
+              <option value="soft-light">柔和亮色</option>
+              <option value="soft-dark">柔和暗色</option>
+              <option value="blue">蓝色主题</option>
             </select>
           </div>
           <div class="setting-item">
@@ -179,28 +181,53 @@
             </div>
           </div>
           <div class="setting-item">
-            <label>应用更新</label>
+            <label>添加文件夹快捷键</label>
             <div style="display: flex; gap: 8px; align-items: center;">
-              <span style="flex: 1; font-size: 12px; color: #666;">
+              <input 
+                type="text" 
+                :value="isEditingAddFolderHotkey ? tempAddFolderHotkey : settings.addFolderHotkey"
+                :readonly="!isEditingAddFolderHotkey"
+                @keydown="captureAddFolderHotkey"
+                @blur="cancelAddFolderHotkeyEdit"
+                ref="addFolderHotkeyInput"
+                placeholder="按下组合键..."
+                style="flex: 1;"
+              >
+              <button 
+                class="btn" 
+                :class="isEditingAddFolderHotkey ? 'btn-cancel' : 'btn-save'"
+                @click="toggleAddFolderHotkeyEdit"
+                style="padding: 6px 12px; font-size: 12px;"
+              >
+                {{ isEditingAddFolderHotkey ? '取消' : '修改' }}
+              </button>
+            </div>
+          </div>
+          <div class="setting-item">
+            <label>应用更新</label>
+            <div class="update-info-container">
+              <div class="update-status">
                 {{ updateInfo.available ? `发现新版本 ${updateInfo.version}` : '当前版本已是最新' }}
-              </span>
-              <button 
-                class="btn btn-save"
-                @click="checkForUpdates"
-                :disabled="updateInfo.checking"
-                style="padding: 6px 12px; font-size: 12px;"
-              >
-                {{ updateInfo.checking ? '检查中...' : '检查更新' }}
-              </button>
-              <button 
-                v-if="updateInfo.available"
-                class="btn btn-save"
-                @click="downloadUpdate"
-                :disabled="updateInfo.downloading"
-                style="padding: 6px 12px; font-size: 12px;"
-              >
-                {{ updateInfo.downloading ? '下载中...' : '下载更新' }}
-              </button>
+              </div>
+              <div class="update-actions">
+                <button 
+                  class="btn btn-save"
+                  @click="checkForUpdates"
+                  :disabled="updateInfo.checking"
+                  style="padding: 6px 12px; font-size: 12px;"
+                >
+                  {{ updateInfo.checking ? '检查中...' : '检查更新' }}
+                </button>
+                <button 
+                  v-if="updateInfo.available"
+                  class="btn btn-save"
+                  @click="downloadUpdate"
+                  :disabled="updateInfo.downloading"
+                  style="padding: 6px 12px; font-size: 12px;"
+                >
+                  {{ updateInfo.downloading ? '下载中...' : '下载更新' }}
+                </button>
+              </div>
             </div>
           </div>
           <div class="setting-actions">
@@ -234,7 +261,8 @@ export default {
       settings: {
         theme: 'light',
         showOnStartup: true,
-        globalHotkey: 'Ctrl+Alt+F'
+        globalHotkey: 'Ctrl+Alt+F',
+        addFolderHotkey: 'Ctrl+Alt+A'
       },
       updateInfo: {
         checking: false,
@@ -245,6 +273,8 @@ export default {
       },
       isEditingHotkey: false,
       tempHotkey: '',
+      isEditingAddFolderHotkey: false,
+      tempAddFolderHotkey: '',
       colorOptions: [
         '#007acc', '#ff6b6b', '#4ecdc4', '#45b7d1',
         '#96ceb4', '#feca57', '#ff9ff3', '#54a0ff',
@@ -434,6 +464,15 @@ export default {
           }
         }
         
+        // 更新主进程的添加文件夹快捷键
+        if (window.electronAPI && window.electronAPI.updateAddFolderHotkey) {
+          const result = await window.electronAPI.updateAddFolderHotkey(this.settings.addFolderHotkey)
+          if (!result.success) {
+            alert(`添加文件夹快捷键设置失败: ${result.message}`)
+            return
+          }
+        }
+        
         this.applyTheme()
         this.closeSettings()
         alert('设置已保存')
@@ -444,10 +483,15 @@ export default {
     },
     
     applyTheme() {
-      if (this.settings.theme === 'dark') {
-        document.body.classList.add('dark-theme')
-      } else {
-        document.body.classList.remove('dark-theme')
+      // 移除所有主题类
+      const themeClasses = ['dark-theme', 'blue-theme', 'soft-dark-theme', 'soft-light-theme']
+      themeClasses.forEach(theme => {
+        document.body.classList.remove(theme)
+      })
+      
+      // 应用当前主题
+      if (this.settings.theme && this.settings.theme !== 'light') {
+        document.body.classList.add(`${this.settings.theme}-theme`)
       }
     },
     
@@ -462,6 +506,13 @@ export default {
           if (this.settings.globalHotkey && this.settings.globalHotkey !== 'Ctrl+Alt+F') {
             if (window.electronAPI && window.electronAPI.updateHotkey) {
               await window.electronAPI.updateHotkey(this.settings.globalHotkey)
+            }
+          }
+          
+          // 如果有保存的添加文件夹快捷键设置，应用到主进程
+          if (this.settings.addFolderHotkey && this.settings.addFolderHotkey !== 'Ctrl+Alt+A') {
+            if (window.electronAPI && window.electronAPI.updateAddFolderHotkey) {
+              await window.electronAPI.updateAddFolderHotkey(this.settings.addFolderHotkey)
             }
           }
         }
@@ -521,6 +572,60 @@ export default {
       setTimeout(() => {
         this.isEditingHotkey = false
         this.tempHotkey = ''
+      }, 150)
+    },
+
+    toggleAddFolderHotkeyEdit() {
+      if (this.isEditingAddFolderHotkey) {
+        // 取消编辑
+        this.isEditingAddFolderHotkey = false
+        this.tempAddFolderHotkey = ''
+      } else {
+        // 开始编辑
+        this.isEditingAddFolderHotkey = true
+        this.tempAddFolderHotkey = ''
+        this.$nextTick(() => {
+          this.$refs.addFolderHotkeyInput?.focus()
+        })
+      }
+    },
+
+    captureAddFolderHotkey(event) {
+      if (!this.isEditingAddFolderHotkey) return
+      
+      event.preventDefault()
+      
+      const keys = []
+      if (event.ctrlKey) keys.push('Ctrl')
+      if (event.altKey) keys.push('Alt')
+      if (event.shiftKey) keys.push('Shift')
+      if (event.metaKey) keys.push('Meta')
+      
+      // 只有在按下非修饰键时才完成快捷键设置
+      if (event.key && !['Control', 'Alt', 'Shift', 'Meta'].includes(event.key)) {
+        let key = event.key.toUpperCase()
+        if (key === ' ') key = 'Space'
+        keys.push(key)
+        
+        const hotkey = keys.join('+')
+        this.tempAddFolderHotkey = hotkey
+        
+        // 自动保存新的快捷键
+        setTimeout(() => {
+          this.settings.addFolderHotkey = hotkey
+          this.isEditingAddFolderHotkey = false
+          this.tempAddFolderHotkey = ''
+        }, 100)
+      } else {
+        // 显示当前按下的修饰键
+        this.tempAddFolderHotkey = keys.join('+') + (keys.length > 0 ? '+' : '')
+      }
+    },
+
+    cancelAddFolderHotkeyEdit() {
+      setTimeout(() => {
+        this.isEditingAddFolderHotkey = false
+        this.tempAddFolderHotkey = ''
       }, 150)
     },
 

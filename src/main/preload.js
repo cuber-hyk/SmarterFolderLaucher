@@ -18,6 +18,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   openSettings: () => ipcRenderer.invoke('open-settings'),
   onOpenSettings: (callback) => ipcRenderer.on('open-settings-page', callback),
   updateHotkey: (newHotkey) => ipcRenderer.invoke('update-hotkey', newHotkey),
+  updateAddFolderHotkey: (newHotkey) => ipcRenderer.invoke('update-add-folder-hotkey', newHotkey),
   
   // 更新功能
   checkForUpdates: () => ipcRenderer.invoke('check-for-updates'),

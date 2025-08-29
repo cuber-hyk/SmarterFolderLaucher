@@ -13,6 +13,7 @@ class SmarterFolderLauncher {
     this.database = null
     this.isQuitting = false
     this.currentHotkey = 'Alt+F'
+    this.currentAddFolderHotkey = 'CommandOrControl+Alt+A'
   }
 
   async init() {
@@ -180,10 +181,18 @@ class SmarterFolderLauncher {
     this.tray.setContextMenu(contextMenu)
   }
 
-  registerGlobalShortcuts() {
+  async registerGlobalShortcuts() {
     if (!app.isReady()) {
       console.log('应用未就绪，延迟注册快捷键')
       return
+    }
+
+    // 从数据库读取自定义快捷键设置
+    if (this.database) {
+      const addFolderHotkey = this.database.getSetting('hotkey_add_folder')
+      if (addFolderHotkey) {
+        this.currentAddFolderHotkey = addFolderHotkey
+      }
     }
 
     // 注册全局快捷键
@@ -209,22 +218,24 @@ class SmarterFolderLauncher {
       }
     }
 
-    // 添加文件夹快捷键
-    let addFolderRegistered = globalShortcut.register('Alt+A', () => {
+    // 注册添加文件夹快捷键
+    let addFolderRegistered = globalShortcut.register(this.currentAddFolderHotkey, () => {
       this.addFolderFromTray()
     })
     
     if (addFolderRegistered) {
-      console.log('添加文件夹快捷键注册成功: Alt+A')
+      console.log(`添加文件夹快捷键注册成功: ${this.currentAddFolderHotkey}`)
     } else {
-      console.log('添加文件夹快捷键 Alt+A 注册失败，尝试备用快捷键')
+      console.log(`添加文件夹快捷键 ${this.currentAddFolderHotkey} 注册失败，尝试备用快捷键`)
       // 尝试备用快捷键
-      addFolderRegistered = globalShortcut.register('CommandOrControl+Shift+A', () => {
+      const backupAddFolderHotkey = 'CommandOrControl+Shift+A'
+      addFolderRegistered = globalShortcut.register(backupAddFolderHotkey, () => {
         this.addFolderFromTray()
       })
       
       if (addFolderRegistered) {
-        console.log('添加文件夹备用快捷键注册成功: CommandOrControl+Shift+A')
+        console.log(`添加文件夹备用快捷键注册成功: ${backupAddFolderHotkey}`)
+        this.currentAddFolderHotkey = backupAddFolderHotkey
       } else {
         console.log('添加文件夹备用快捷键也注册失败')
       }
@@ -332,6 +343,31 @@ class SmarterFolderLauncher {
     ipcMain.handle('update-hotkey', (event, newHotkey) => {
       return this.updateGlobalHotkey(newHotkey)
     })
+
+    ipcMain.handle('get-settings', () => {
+      if (this.database) {
+        return this.database.getAllSettings()
+      }
+      return {}
+    })
+
+    ipcMain.handle('save-setting', (event, key, value) => {
+      if (this.database) {
+        return this.database.setSetting(key, value)
+      }
+      return false
+    })
+
+    ipcMain.handle('update-add-folder-hotkey', (event, newHotkey) => {
+      return this.updateAddFolderHotkey(newHotkey)
+    })
+
+    ipcMain.handle('get-current-hotkeys', () => {
+      return {
+        toggleWindow: this.currentHotkey,
+        addFolder: this.currentAddFolderHotkey
+      }
+    })
   }
 
   showWindow() {
@@ -415,6 +451,43 @@ class SmarterFolderLauncher {
     }
   }
 
+  updateAddFolderHotkey(newHotkey) {
+    try {
+      // 转换前端快捷键格式到Electron格式
+      const electronHotkey = this.convertHotkeyFormat(newHotkey)
+      
+      // 先注销当前添加文件夹快捷键
+      globalShortcut.unregister(this.currentAddFolderHotkey)
+      
+      // 注册新的添加文件夹快捷键
+      const registered = globalShortcut.register(electronHotkey, () => {
+        this.addFolderFromTray()
+      })
+      
+      if (registered) {
+        this.currentAddFolderHotkey = electronHotkey
+        console.log(`添加文件夹快捷键更新成功: ${electronHotkey}`)
+        
+        // 保存到数据库
+        if (this.database) {
+          this.database.setSetting('hotkey_add_folder', electronHotkey)
+        }
+        
+        return { success: true, message: '添加文件夹快捷键更新成功' }
+      } else {
+        // 如果注册失败，恢复原快捷键
+        globalShortcut.register(this.currentAddFolderHotkey, () => {
+          this.addFolderFromTray()
+        })
+        console.log('新的添加文件夹快捷键注册失败，已恢复原快捷键')
+        return { success: false, message: '快捷键已被占用或无效' }
+      }
+    } catch (error) {
+      console.error('更新添加文件夹快捷键失败:', error)
+      return { success: false, message: '快捷键格式无效' }
+    }
+  }
+
   convertHotkeyFormat(hotkey) {
     // 将前端格式 (Ctrl+Alt+F) 转换为 Electron 格式 (CommandOrControl+Alt+F)
     return hotkey.replace(/Ctrl/g, 'CommandOrControl')
@@ -431,17 +504,6 @@ class SmarterFolderLauncher {
 }
 
 // 应用事件处理
-app.whenReady().then(async () => {
-  const launcher = new SmarterFolderLauncher()
-  await launcher.init()
-
-  app.on('activate', () => {
-    if (BrowserWindow.getAllWindows().length === 0) {
-      launcher.createWindow()
-    }
-  })
-})
-
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') {
     app.quit()
@@ -458,11 +520,25 @@ const gotTheLock = app.requestSingleInstanceLock()
 if (!gotTheLock) {
   app.quit()
 } else {
+  let launcherInstance = null
+  
+  app.whenReady().then(async () => {
+    launcherInstance = new SmarterFolderLauncher()
+    await launcherInstance.init()
+
+    app.on('activate', () => {
+      if (BrowserWindow.getAllWindows().length === 0) {
+        launcherInstance.createWindow()
+      }
+    })
+  })
+  
   app.on('second-instance', () => {
     // 当运行第二个实例时，将会聚焦到主窗口
-    if (this.mainWindow) {
-      if (this.mainWindow.isMinimized()) this.mainWindow.restore()
-      this.mainWindow.focus()
+    if (launcherInstance && launcherInstance.mainWindow) {
+      if (launcherInstance.mainWindow.isMinimized()) launcherInstance.mainWindow.restore()
+      launcherInstance.mainWindow.focus()
+      launcherInstance.showWindow()
     }
   })
 }
