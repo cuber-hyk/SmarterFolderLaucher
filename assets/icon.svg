@@ -1,0 +1,40 @@
+<svg width="256" height="256" viewBox="0 0 256 256" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="folderGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#667eea;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#764ba2;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="lightGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#ffffff;stop-opacity:0.3" />
+      <stop offset="100%" style="stop-color:#ffffff;stop-opacity:0.1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- 背景圆形 -->
+  <circle cx="128" cy="128" r="120" fill="url(#folderGradient)" stroke="#ffffff" stroke-width="4"/>
+  
+  <!-- 文件夹图标 -->
+  <g transform="translate(64, 80)">
+    <!-- 文件夹主体 -->
+    <path d="M0 20 L0 100 Q0 108 8 108 L120 108 Q128 108 128 100 L128 28 Q128 20 120 20 L60 20 L50 8 Q48 4 44 4 L8 4 Q0 4 0 12 Z" 
+          fill="#ffffff" opacity="0.9"/>
+    
+    <!-- 文件夹标签 -->
+    <path d="M0 12 L0 20 L50 20 L60 8 Q62 4 66 4 L120 4 Q128 4 128 12 L128 20 L8 20 Q0 20 0 12 Z" 
+          fill="#ffffff" opacity="0.7"/>
+    
+    <!-- 闪电图标 -->
+    <g transform="translate(45, 35)">
+      <path d="M20 0 L8 22 L16 22 L12 38 L24 16 L16 16 Z" 
+            fill="url(#folderGradient)" stroke="#ffffff" stroke-width="1"/>
+    </g>
+  </g>
+  
+  <!-- 光泽效果 -->
+  <circle cx="128" cy="128" r="120" fill="url(#lightGradient)"/>
+  
+  <!-- 装饰性小点 -->
+  <circle cx="180" cy="80" r="4" fill="#ffffff" opacity="0.6"/>
+  <circle cx="200" cy="100" r="3" fill="#ffffff" opacity="0.4"/>
+  <circle cx="190" cy="120" r="2" fill="#ffffff" opacity="0.5"/>
+</svg>
