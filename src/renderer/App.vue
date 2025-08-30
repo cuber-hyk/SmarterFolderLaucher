@@ -69,6 +69,7 @@
           :key="folder.id" 
           class="folder-item" 
           @click="openFolder(folder)"
+          @contextmenu.prevent="showContextMenu($event, folder)"
         >
           <div class="folder-icon" :style="{ backgroundColor: folder.color }">
             {{ folder.icon || '📁' }}
@@ -88,6 +89,47 @@
           </div>
         </div>
       </div>
+
+    <!-- 右键菜单 -->
+    <div 
+      v-if="contextMenu.show" 
+      class="context-menu" 
+      :style="{ left: contextMenu.x + 'px', top: contextMenu.y + 'px' }"
+      @click.stop
+    >
+      <div class="context-menu-item" @click="openFolderInVSCode(contextMenu.folder)">
+        <svg width="14" height="14" viewBox="0 0 16 16">
+          <path fill="currentColor" d="M14.25 1l-.25.25v13.5l.25.25h1.5l.25-.25V1.25L15.75 1h-1.5zM15 14.75H14.5V1.25H15v13.5zM11.75 1L8.5 4.25 5.25 1H2.5l-.25.25v13.5l.25.25h2.75L8.5 11.75 11.75 15h2.75l.25-.25V1.25L14.5 1h-2.75zM13.75 14.25H12.25L9 11 12.25 7.75h1.5v6.5zM3.75 14.25H2.25V1.25h1.5L7 4.5 3.75 7.75v6.5z"/>
+        </svg>
+        在 VSCode 中打开
+      </div>
+      <div class="context-menu-item" @click="openFolderInTerminal(contextMenu.folder)">
+        <svg width="14" height="14" viewBox="0 0 16 16">
+          <path fill="currentColor" d="M0 2v12h16V2H0zm15 11H1V3h14v10zM2 4v1h1V4H2zm2 0v1h1V4H4zm2 0v1h1V4H6zM2 6v1h12V6H2zm0 2v1h12V8H2zm0 2v1h12v-1H2z"/>
+        </svg>
+        在终端中打开
+      </div>
+      <div class="context-menu-divider"></div>
+      <div class="context-menu-item" @click="editFolder(contextMenu.folder)">
+        <svg width="14" height="14" viewBox="0 0 16 16">
+          <path fill="currentColor" d="M11.013 1.427a1.75 1.75 0 0 1 2.474 0l1.086 1.086a1.75 1.75 0 0 1 0 2.474l-8.61 8.61c-.21.21-.47.364-.756.445l-3.251.93a.75.75 0 0 1-.927-.928l.929-3.25c.081-.286.235-.547.445-.758l8.61-8.61Zm.176 4.823L9.75 4.81l-6.286 6.287a.253.253 0 0 0-.064.108l-.558 1.953 1.953-.558a.253.253 0 0 0 .108-.064L11.189 6.25Zm1.238-3.763a.25.25 0 0 0-.354 0L10.811 3.75l1.439 1.44 1.263-1.263a.25.25 0 0 0 0-.354L12.427 2.487Z"/>
+        </svg>
+        编辑
+      </div>
+      <div class="context-menu-item context-menu-item-danger" @click="deleteFolder(contextMenu.folder)">
+        <svg width="14" height="14" viewBox="0 0 16 16">
+          <path fill="currentColor" d="M6.5 1h3a.5.5 0 0 1 .5.5v1H6v-1a.5.5 0 0 1 .5-.5ZM11 2.5v-1A1.5 1.5 0 0 0 9.5 0h-3A1.5 1.5 0 0 0 5 1.5v1H2.506a.58.58 0 0 0-.01 1.152l.557 10.056A2 2 0 0 0 5.046 16h5.908a2 2 0 0 0 1.993-1.792l.557-10.056a.58.58 0 0 0-.01-1.152H11ZM4.5 5.5l.5 9h1l-.4-9H4.5Zm2.5 0-.4 9h2.8l-.4-9H7Zm3.5 0v9h1l.5-9H11Z"/>
+        </svg>
+        删除
+      </div>
+    </div>
+
+    <!-- 右键菜单遮罩 -->
+    <div 
+      v-if="contextMenu.show" 
+      class="context-menu-overlay" 
+      @click="hideContextMenu"
+    ></div>
     </div>
 
     <!-- 底部操作栏 -->
@@ -508,6 +550,12 @@ export default {
       ],
 
       accessStats: null,
+      contextMenu: {
+        show: false,
+        x: 0,
+        y: 0,
+        folder: null
+      },
       sortOptions: [
         {
           value: 'smart',
@@ -567,8 +615,9 @@ export default {
     // 检查Windows右键菜单状态
     await this.checkContextMenuStatus()
     
-    // 点击其他地方隐藏下拉菜单
+    // 点击其他地方隐藏下拉菜单和右键菜单
     document.addEventListener('click', this.hideSortDropdown)
+    document.addEventListener('click', this.hideContextMenu)
     
     // 监听主进程发送的设置页面事件
     if (window.electronAPI && window.electronAPI.onOpenSettings) {
@@ -586,6 +635,7 @@ export default {
   },
   beforeUnmount() {
     document.removeEventListener('click', this.hideSortDropdown)
+    document.removeEventListener('click', this.hideContextMenu)
   },
   methods: {
     async loadFolders() {
@@ -676,12 +726,14 @@ export default {
     },
     
     async deleteFolder(folder) {
+      this.hideContextMenu()
       if (confirm(`确定要删除文件夹 "${folder.name}" 吗？`)) {
         try {
           await window.electronAPI.deleteFolder(folder.id)
           await this.loadFolders()
         } catch (error) {
           console.error('删除文件夹失败:', error)
+          alert('删除失败，请重试')
         }
       }
     },
@@ -691,9 +743,10 @@ export default {
         id: folder.id,
         name: folder.name,
         path: folder.path,
-        color: folder.color || '#007acc'
+        color: folder.color
       }
       this.showEditDialog = true
+      this.hideContextMenu()
     },
     
     async saveEditedFolder() {
@@ -727,8 +780,64 @@ export default {
     handleSearch() {
       // 搜索逻辑已在computed中实现
     },
-    
 
+    // 右键菜单相关方法
+    showContextMenu(event, folder) {
+      this.contextMenu.show = true
+      this.contextMenu.x = event.clientX
+      this.contextMenu.y = event.clientY
+      this.contextMenu.folder = folder
+      
+      // 确保菜单不会超出窗口边界
+      this.$nextTick(() => {
+        const menu = document.querySelector('.context-menu')
+        if (menu) {
+          const rect = menu.getBoundingClientRect()
+          const windowWidth = window.innerWidth
+          const windowHeight = window.innerHeight
+          
+          if (rect.right > windowWidth) {
+            this.contextMenu.x = windowWidth - rect.width - 5
+          }
+          if (rect.bottom > windowHeight) {
+            this.contextMenu.y = windowHeight - rect.height - 5
+          }
+        }
+      })
+    },
+    
+    hideContextMenu() {
+      this.contextMenu.show = false
+      this.contextMenu.folder = null
+    },
+    
+    async openFolderInVSCode(folder) {
+      try {
+        const result = await window.electronAPI.openFolderInVSCode(folder.path)
+        if (!result.success) {
+          alert(result.error || '打开VSCode失败，请确保已安装VSCode')
+        }
+        this.hideContextMenu()
+      } catch (error) {
+        console.error('在VSCode中打开文件夹失败:', error)
+        alert('打开VSCode失败，请确保已安装VSCode')
+        this.hideContextMenu()
+      }
+    },
+    
+    async openFolderInTerminal(folder) {
+      try {
+        const result = await window.electronAPI.openFolderInTerminal(folder.path)
+        if (!result.success) {
+          alert(result.error || '打开终端失败')
+        }
+        this.hideContextMenu()
+      } catch (error) {
+        console.error('在终端中打开文件夹失败:', error)
+        alert('打开终端失败')
+        this.hideContextMenu()
+      }
+    },
     
     closeWindow() {
       window.electronAPI.closeWindow()
@@ -1068,3 +1177,171 @@ export default {
   }
 }
 </script>
+
+<style scoped>
+/* 右键菜单样式 */
+.context-menu {
+  position: fixed;
+  background: white;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  padding: 4px 0;
+  min-width: 160px;
+  z-index: 1000;
+  font-size: 13px;
+}
+
+.context-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  color: #333;
+}
+
+.context-menu-item:hover {
+  background-color: #f5f5f5;
+}
+
+.context-menu-item-danger {
+  color: #d32f2f;
+}
+
+.context-menu-item-danger:hover {
+  background-color: #ffebee;
+  color: #c62828;
+}
+
+.context-menu-divider {
+  height: 1px;
+  background-color: #e0e0e0;
+  margin: 4px 0;
+}
+
+.context-menu-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 999;
+  background: transparent;
+}
+
+/* 暗色主题下的右键菜单样式 */
+.dark-theme .context-menu {
+  background: #2d2d2d;
+  border-color: #404040;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.dark-theme .context-menu-item {
+  color: #e0e0e0;
+}
+
+.dark-theme .context-menu-item:hover {
+  background-color: #404040;
+  color: #fff;
+}
+
+.dark-theme .context-menu-item-danger {
+  color: #ff6b6b;
+}
+
+.dark-theme .context-menu-item-danger:hover {
+  background-color: #4a2c2c;
+  color: #ff8a80;
+}
+
+.dark-theme .context-menu-divider {
+  background-color: #404040;
+}
+
+/* 其他彩色主题下的右键菜单样式 */
+.blue-theme .context-menu {
+  background: #1e3a8a;
+  border-color: #3b82f6;
+}
+
+.blue-theme .context-menu-item {
+  color: #dbeafe;
+}
+
+.blue-theme .context-menu-item:hover {
+  background-color: #3b82f6;
+  color: #fff;
+}
+
+.green-theme .context-menu {
+  background: #14532d;
+  border-color: #22c55e;
+}
+
+.green-theme .context-menu-item {
+  color: #dcfce7;
+}
+
+.green-theme .context-menu-item:hover {
+  background-color: #22c55e;
+  color: #fff;
+}
+
+.purple-theme .context-menu {
+  background: #581c87;
+  border-color: #a855f7;
+}
+
+.purple-theme .context-menu-item {
+  color: #f3e8ff;
+}
+
+.purple-theme .context-menu-item:hover {
+  background-color: #a855f7;
+  color: #fff;
+}
+
+.orange-theme .context-menu {
+  background: #9a3412;
+  border-color: #f97316;
+}
+
+.orange-theme .context-menu-item {
+  color: #fed7aa;
+}
+
+.orange-theme .context-menu-item:hover {
+  background-color: #f97316;
+  color: #fff;
+}
+
+.soft-dark-theme .context-menu {
+  background: #374151;
+  border-color: #6b7280;
+}
+
+.soft-dark-theme .context-menu-item {
+  color: #f3f4f6;
+}
+
+.soft-dark-theme .context-menu-item:hover {
+  background-color: #6b7280;
+  color: #fff;
+}
+
+.soft-light-theme .context-menu {
+  background: #f8fafc;
+  border-color: #e2e8f0;
+}
+
+.soft-light-theme .context-menu-item {
+  color: #475569;
+}
+
+.soft-light-theme .context-menu-item:hover {
+  background-color: #e2e8f0;
+  color: #334155;
+}
+</style>

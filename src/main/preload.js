@@ -38,6 +38,10 @@ contextBridge.exposeInMainWorld('electronAPI', {
   unregisterContextMenu: () => ipcRenderer.invoke('unregister-context-menu'),
   isContextMenuRegistered: () => ipcRenderer.invoke('is-context-menu-registered'),
   
+  // 在外部应用中打开文件夹
+  openFolderInVSCode: (folderPath) => ipcRenderer.invoke('open-folder-in-vscode', folderPath),
+  openFolderInTerminal: (folderPath) => ipcRenderer.invoke('open-folder-in-terminal', folderPath),
+  
   // 平台信息
   platform: process.platform
 })
