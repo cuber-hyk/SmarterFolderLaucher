@@ -45,6 +45,17 @@ body {
   font-size: 14px;
 }
 
+.title .version {
+  font-size: 11px;
+  font-weight: 400;
+  opacity: 0.8;
+  margin-left: 8px;
+  padding: 2px 6px;
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 8px;
+  font-family: 'Courier New', monospace;
+}
+
 .window-controls {
   display: flex;
   gap: 8px;
@@ -259,32 +270,7 @@ body {
   transform: translateY(-1px);
 }
 
-/* 右键菜单 */
-.context-menu {
-  position: fixed;
-  background: white;
-  border: 1px solid rgba(0, 0, 0, 0.1);
-  border-radius: 6px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  z-index: 1000;
-  min-width: 120px;
-  overflow: hidden;
-}
 
-.menu-item {
-  padding: 10px 16px;
-  font-size: 13px;
-  cursor: pointer;
-  transition: background-color 0.2s ease;
-}
-
-.menu-item:hover {
-  background: #f5f5f5;
-}
-
-.menu-item.danger {
-  color: #ff4757;
-}
 
 .menu-item.danger:hover {
   background: #fff5f5;
@@ -643,30 +629,7 @@ body.dark-theme .action-btn:hover {
   box-shadow: 0 4px 12px rgba(35, 134, 54, 0.3);
 }
 
-body.dark-theme .context-menu {
-  background: #21262d;
-  border: 1px solid #30363d;
-  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.5);
-}
 
-body.dark-theme .menu-item {
-  color: #f0f6fc;
-  font-weight: 500;
-}
-
-body.dark-theme .menu-item:hover {
-  background: #262c36;
-  color: #f0f6fc;
-}
-
-body.dark-theme .menu-item.danger {
-  color: #f85149;
-}
-
-body.dark-theme .menu-item.danger:hover {
-  background: rgba(248, 81, 73, 0.1);
-  color: #f85149;
-}
 
 body.dark-theme .settings-panel {
   background: #21262d;
@@ -1285,4 +1248,890 @@ body.soft-light-theme .project-description {
     width: 20px;
     height: 20px;
   }
+}
+
+/* 排序下拉选择器样式 */
+.sort-dropdown-container {
+  position: relative;
+  margin-left: 12px;
+}
+
+.sort-dropdown {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid rgba(102, 126, 234, 0.2);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-width: 80px;
+  font-size: 12px;
+}
+
+.sort-dropdown:hover {
+  background: rgba(255, 255, 255, 1);
+  border-color: rgba(102, 126, 234, 0.4);
+  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.1);
+}
+
+.sort-dropdown.active {
+  border-color: #667eea;
+  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.2);
+}
+
+.sort-selected {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #666;
+  font-weight: 500;
+}
+
+.dropdown-arrow {
+  transition: transform 0.2s ease;
+  color: #999;
+}
+
+.dropdown-arrow.rotated {
+  transform: rotate(180deg);
+}
+
+.sort-dropdown-menu {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: white;
+  border: 1px solid rgba(102, 126, 234, 0.2);
+  border-radius: 6px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  z-index: 1000;
+  margin-top: 4px;
+  overflow: hidden;
+}
+
+.sort-option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  font-size: 12px;
+  color: #666;
+  position: relative;
+}
+
+.sort-option:hover {
+  background: rgba(102, 126, 234, 0.05);
+}
+
+.sort-option.active {
+  background: rgba(102, 126, 234, 0.1);
+  color: #667eea;
+  font-weight: 600;
+}
+
+.sort-option .check-icon {
+  margin-left: auto;
+  color: #667eea;
+}
+
+/* 排序选择器样式 */
+.sort-container {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 12px;
+  padding: 8px 12px;
+  background: rgba(255, 255, 255, 0.8);
+  border-radius: 8px;
+  border: 1px solid rgba(102, 126, 234, 0.1);
+}
+
+.sort-label {
+  display: flex;
+  align-items: center;
+  font-size: 12px;
+  color: #666;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.sort-buttons {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+
+.sort-btn {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 10px;
+  border: 1px solid rgba(102, 126, 234, 0.2);
+  border-radius: 6px;
+  font-size: 11px;
+  background: white;
+  color: #666;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.sort-btn:hover {
+  background: rgba(102, 126, 234, 0.05);
+  border-color: rgba(102, 126, 234, 0.3);
+  color: #667eea;
+  transform: translateY(-1px);
+}
+
+.sort-btn.active {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-color: #667eea;
+  color: white;
+  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+}
+
+.sort-btn.active:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
+.sort-btn-text {
+  font-weight: 500;
+}
+
+/* 深色主题下的排序下拉选择器样式 */
+body.dark-theme .sort-dropdown {
+  background: rgba(33, 38, 45, 0.9);
+  border: 1px solid #30363d;
+}
+
+body.dark-theme .sort-dropdown:hover {
+  background: rgba(33, 38, 45, 1);
+  border-color: #58a6ff;
+}
+
+body.dark-theme .sort-dropdown.active {
+  border-color: #58a6ff;
+}
+
+body.dark-theme .sort-selected {
+  color: #8b949e;
+}
+
+body.dark-theme .dropdown-arrow {
+  color: #6e7681;
+}
+
+body.dark-theme .sort-dropdown-menu {
+  background: #21262d;
+  border: 1px solid #30363d;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+body.dark-theme .sort-option {
+  color: #8b949e;
+}
+
+body.dark-theme .sort-option:hover {
+  background: rgba(88, 166, 255, 0.1);
+}
+
+body.dark-theme .sort-option.active {
+  background: rgba(88, 166, 255, 0.15);
+  color: #58a6ff;
+}
+
+body.dark-theme .sort-option .check-icon {
+  color: #58a6ff;
+}
+
+/* 深色主题下的排序按钮样式优化 */
+body.dark-theme .sort-container {
+  background: rgba(33, 38, 45, 0.8);
+  border: 1px solid #30363d;
+}
+
+body.dark-theme .sort-label {
+  color: #8b949e;
+}
+
+body.dark-theme .sort-btn {
+  background: #21262d;
+  border: 1px solid #30363d;
+  color: #8b949e;
+}
+
+body.dark-theme .sort-btn:hover {
+  background: #262c36;
+  border-color: #58a6ff;
+  color: #58a6ff;
+}
+
+body.dark-theme .sort-btn.active {
+  background: linear-gradient(135deg, #238636 0%, #2ea043 100%);
+  border-color: #2ea043;
+  color: white;
+  box-shadow: 0 2px 8px rgba(35, 134, 54, 0.3);
+}
+
+/* 蓝色主题下的排序按钮样式优化 */
+body.blue-theme .sort-container {
+  background: rgba(30, 64, 175, 0.1);
+  border: 1px solid rgba(59, 130, 246, 0.2);
+}
+
+body.blue-theme .sort-label {
+  color: #b3d9ff;
+}
+
+body.blue-theme .sort-btn {
+  background: rgba(30, 64, 175, 0.1);
+  border: 1px solid rgba(59, 130, 246, 0.2);
+  color: #b3d9ff;
+}
+
+body.blue-theme .sort-btn:hover {
+  background: rgba(59, 130, 246, 0.2);
+  border-color: #3b82f6;
+  color: #ffffff;
+}
+
+body.blue-theme .sort-btn.active {
+  background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
+  border-color: #3b82f6;
+  color: white;
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
+}
+
+/* 绿色主题下的排序按钮样式优化 */
+body.green-theme .sort-container {
+  background: rgba(21, 128, 61, 0.1);
+  border: 1px solid rgba(34, 197, 94, 0.2);
+}
+
+body.green-theme .sort-label {
+  color: #b3ffb3;
+}
+
+body.green-theme .sort-btn {
+  background: rgba(21, 128, 61, 0.1);
+  border: 1px solid rgba(34, 197, 94, 0.2);
+  color: #b3ffb3;
+}
+
+body.green-theme .sort-btn:hover {
+  background: rgba(34, 197, 94, 0.2);
+  border-color: #22c55e;
+  color: #ffffff;
+}
+
+body.green-theme .sort-btn.active {
+  background: linear-gradient(135deg, #15803d 0%, #22c55e 100%);
+  border-color: #22c55e;
+  color: white;
+  box-shadow: 0 2px 8px rgba(34, 197, 94, 0.3);
+}
+
+/* 紫色主题下的排序按钮样式优化 */
+body.purple-theme .sort-container {
+  background: rgba(124, 58, 237, 0.1);
+  border: 1px solid rgba(147, 51, 234, 0.2);
+}
+
+body.purple-theme .sort-label {
+  color: #e6ccff;
+}
+
+body.purple-theme .sort-btn {
+  background: rgba(124, 58, 237, 0.1);
+  border: 1px solid rgba(147, 51, 234, 0.2);
+  color: #e6ccff;
+}
+
+body.purple-theme .sort-btn:hover {
+  background: rgba(147, 51, 234, 0.2);
+  border-color: #a855f7;
+  color: #ffffff;
+}
+
+body.purple-theme .sort-btn.active {
+  background: linear-gradient(135deg, #7c3aed 0%, #a855f7 100%);
+  border-color: #a855f7;
+  color: white;
+  box-shadow: 0 2px 8px rgba(147, 51, 234, 0.3);
+}
+
+/* 橙色主题下的排序按钮样式优化 */
+body.orange-theme .sort-container {
+  background: rgba(234, 88, 12, 0.1);
+  border: 1px solid rgba(249, 115, 22, 0.2);
+}
+
+body.orange-theme .sort-label {
+  color: #ffcc99;
+}
+
+body.orange-theme .sort-btn {
+  background: rgba(234, 88, 12, 0.1);
+  border: 1px solid rgba(249, 115, 22, 0.2);
+  color: #ffcc99;
+}
+
+body.orange-theme .sort-btn:hover {
+  background: rgba(249, 115, 22, 0.2);
+  border-color: #f97316;
+  color: #ffffff;
+}
+
+body.orange-theme .sort-btn.active {
+  background: linear-gradient(135deg, #ea580c 0%, #f97316 100%);
+  border-color: #f97316;
+  color: white;
+  box-shadow: 0 2px 8px rgba(249, 115, 22, 0.3);
+}
+
+/* 柔和暗色主题下的排序按钮样式优化 */
+body.soft-dark-theme .sort-container {
+  background: rgba(74, 74, 74, 0.1);
+  border: 1px solid rgba(128, 128, 128, 0.2);
+}
+
+body.soft-dark-theme .sort-label {
+  color: #cccccc;
+}
+
+body.soft-dark-theme .sort-btn {
+  background: rgba(74, 74, 74, 0.1);
+  border: 1px solid rgba(128, 128, 128, 0.2);
+  color: #cccccc;
+}
+
+body.soft-dark-theme .sort-btn:hover {
+  background: rgba(128, 128, 128, 0.2);
+  border-color: #888888;
+  color: #ffffff;
+}
+
+body.soft-dark-theme .sort-btn.active {
+  background: linear-gradient(135deg, #4a4a4a 0%, #5a5a5a 100%);
+  border-color: #5a5a5a;
+  color: white;
+  box-shadow: 0 2px 8px rgba(128, 128, 128, 0.3);
+}
+
+/* 柔和亮色主题下的排序按钮样式优化 */
+body.soft-light-theme .sort-container {
+  background: rgba(108, 117, 125, 0.05);
+  border: 1px solid rgba(173, 181, 189, 0.2);
+}
+
+body.soft-light-theme .sort-label {
+  color: #6c757d;
+}
+
+body.soft-light-theme .sort-btn {
+  background: rgba(108, 117, 125, 0.05);
+  border: 1px solid rgba(173, 181, 189, 0.2);
+  color: #6c757d;
+}
+
+body.soft-light-theme .sort-btn:hover {
+  background: rgba(173, 181, 189, 0.2);
+  border-color: #6c757d;
+  color: #495057;
+}
+
+body.soft-light-theme .sort-btn.active {
+  background: linear-gradient(135deg, #6c757d 0%, #868e96 100%);
+  border-color: #868e96;
+  color: white;
+  box-shadow: 0 2px 8px rgba(108, 117, 125, 0.3);
+}
+
+/* 访问统计信息样式 */
+.folder-stats {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 4px;
+  font-size: 10px;
+  color: #888;
+}
+
+.stat-item {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.stat-icon {
+  width: 10px;
+  height: 10px;
+}
+
+.smart-score {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 1px 4px;
+  border-radius: 2px;
+  font-size: 9px;
+  font-weight: bold;
+}
+
+/* 设置页面访问统计样式 */
+.stats-container {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.stats-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 12px;
+  background: rgba(102, 126, 234, 0.05);
+  border-radius: 6px;
+  border: 1px solid rgba(102, 126, 234, 0.1);
+}
+
+.stats-label {
+  font-size: 12px;
+  color: #666;
+  font-weight: 500;
+}
+
+.stats-value {
+  font-size: 14px;
+  color: #333;
+  font-weight: 600;
+}
+
+/* 深色主题下的使用统计样式优化 */
+body.dark-theme .folder-stats {
+  color: #8b949e;
+}
+
+body.dark-theme .stats-container .stats-item {
+  background: rgba(33, 38, 45, 0.8);
+  border: 1px solid #30363d;
+}
+
+body.dark-theme .stats-label {
+  color: #8b949e;
+  font-weight: 600;
+}
+
+body.dark-theme .stats-value {
+  color: #f0f6fc;
+  font-weight: 700;
+}
+
+/* 蓝色主题下的使用统计样式优化 */
+body.blue-theme .folder-stats {
+  color: #b3d9ff;
+}
+
+body.blue-theme .stats-container .stats-item {
+  background: rgba(30, 64, 175, 0.2);
+  border: 1px solid rgba(59, 130, 246, 0.3);
+}
+
+body.blue-theme .stats-label {
+  color: #b3d9ff;
+  font-weight: 600;
+}
+
+body.blue-theme .stats-value {
+  color: #ffffff;
+  font-weight: 700;
+}
+
+/* 绿色主题下的使用统计样式优化 */
+body.green-theme .folder-stats {
+  color: #b3ffb3;
+}
+
+body.green-theme .stats-container .stats-item {
+  background: rgba(21, 128, 61, 0.2);
+  border: 1px solid rgba(34, 197, 94, 0.3);
+}
+
+body.green-theme .stats-label {
+  color: #b3ffb3;
+  font-weight: 600;
+}
+
+body.green-theme .stats-value {
+  color: #ffffff;
+  font-weight: 700;
+}
+
+/* 紫色主题下的使用统计样式优化 */
+body.purple-theme .folder-stats {
+  color: #e6ccff;
+}
+
+body.purple-theme .stats-container .stats-item {
+  background: rgba(124, 58, 237, 0.2);
+  border: 1px solid rgba(147, 51, 234, 0.3);
+}
+
+body.purple-theme .stats-label {
+  color: #e6ccff;
+  font-weight: 600;
+}
+
+body.purple-theme .stats-value {
+  color: #ffffff;
+  font-weight: 700;
+}
+
+/* 橙色主题下的使用统计样式优化 */
+body.orange-theme .folder-stats {
+  color: #ffcc99;
+}
+
+body.orange-theme .stats-container .stats-item {
+  background: rgba(234, 88, 12, 0.2);
+  border: 1px solid rgba(249, 115, 22, 0.3);
+}
+
+body.orange-theme .stats-label {
+  color: #ffcc99;
+  font-weight: 600;
+}
+
+body.orange-theme .stats-value {
+  color: #ffffff;
+  font-weight: 700;
+}
+
+/* 柔和暗色主题下的使用统计样式优化 */
+body.soft-dark-theme .folder-stats {
+  color: #cccccc;
+}
+
+body.soft-dark-theme .stats-container .stats-item {
+  background: rgba(74, 74, 74, 0.2);
+  border: 1px solid rgba(128, 128, 128, 0.3);
+}
+
+body.soft-dark-theme .stats-label {
+  color: #cccccc;
+  font-weight: 600;
+}
+
+body.soft-dark-theme .stats-value {
+  color: #ffffff;
+  font-weight: 700;
+}
+
+/* 柔和亮色主题下的使用统计样式优化 */
+body.soft-light-theme .folder-stats {
+  color: #6c757d;
+}
+
+body.soft-light-theme .stats-container .stats-item {
+  background: rgba(108, 117, 125, 0.1);
+  border: 1px solid rgba(173, 181, 189, 0.3);
+}
+
+body.soft-light-theme .stats-label {
+  color: #6c757d;
+  font-weight: 600;
+}
+
+body.soft-light-theme .stats-value {
+  color: #212529;
+  font-weight: 700;
+}
+
+/* 响应式调整 */
+@media (max-width: 400px) {
+  .stats-container {
+    grid-template-columns: 1fr;
+  }
+  
+  .folder-stats {
+    flex-wrap: wrap;
+  }
+}
+
+/* 功能介绍弹窗样式 */
+.help-section {
+  margin-bottom: 24px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #e9ecef;
+}
+
+.help-section:last-child {
+  border-bottom: none;
+  margin-bottom: 0;
+}
+
+.formula-container {
+  margin: 12px 0;
+  padding: 12px;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 6px;
+  border-left: 3px solid #4CAF50;
+}
+
+.formula-container code {
+  font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+  font-size: 13px;
+  color: #E8F5E8;
+  font-weight: 500;
+}
+
+.help-section h4 {
+  margin: 0 0 12px 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #2c3e50;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.help-section p {
+  margin: 0 0 8px 0;
+  font-size: 14px;
+  line-height: 1.5;
+  color: #555;
+}
+
+.help-section ul {
+  margin: 0;
+  padding-left: 20px;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.help-section li {
+  margin-bottom: 4px;
+  color: #666;
+}
+
+.help-section strong {
+  color: #2c3e50;
+  font-weight: 600;
+}
+
+/* 深色主题下的功能介绍样式 */
+body.dark-theme .help-section {
+  border-bottom-color: #404040;
+}
+
+body.dark-theme .help-section h4 {
+  color: #e9ecef;
+}
+
+body.dark-theme .help-section p {
+  color: #b8b8b8;
+}
+
+body.dark-theme .help-section li {
+  color: #a0a0a0;
+}
+
+body.dark-theme .help-section strong {
+  color: #e9ecef;
+}
+
+/* 蓝色主题下的功能介绍样式 */
+body.blue-theme .help-section {
+  border-bottom-color: #4a90e2;
+}
+
+body.blue-theme .help-section h4 {
+  color: #ffffff;
+}
+
+body.blue-theme .help-section p {
+  color: #e6f3ff;
+}
+
+body.blue-theme .help-section li {
+  color: #cce7ff;
+}
+
+body.blue-theme .help-section strong {
+  color: #ffffff;
+}
+
+/* 绿色主题下的功能介绍样式 */
+body.green-theme .help-section {
+  border-bottom-color: #5cb85c;
+}
+
+body.green-theme .help-section h4 {
+  color: #ffffff;
+}
+
+body.green-theme .help-section p {
+  color: #e6f7e6;
+}
+
+body.green-theme .help-section li {
+  color: #ccf2cc;
+}
+
+body.green-theme .help-section strong {
+  color: #ffffff;
+}
+
+/* 紫色主题下的功能介绍样式 */
+body.purple-theme .help-section {
+  border-bottom-color: #8e44ad;
+}
+
+body.purple-theme .help-section h4 {
+  color: #ffffff;
+}
+
+body.purple-theme .help-section p {
+  color: #f0e6ff;
+}
+
+body.purple-theme .help-section li {
+  color: #e6ccff;
+}
+
+body.purple-theme .help-section strong {
+  color: #ffffff;
+}
+
+/* 橙色主题下的功能介绍样式 */
+body.orange-theme .help-section {
+  border-bottom-color: #f39c12;
+}
+
+body.orange-theme .help-section h4 {
+  color: #ffffff;
+}
+
+body.orange-theme .help-section p {
+  color: #fff3e6;
+}
+
+body.orange-theme .help-section li {
+  color: #ffe6cc;
+}
+
+body.orange-theme .help-section strong {
+  color: #ffffff;
+}
+
+/* 柔和暗色主题下的功能介绍样式 */
+body.soft-dark-theme .help-section {
+  border-bottom-color: #495057;
+}
+
+body.soft-dark-theme .help-section h4 {
+  color: #f8f9fa;
+}
+
+body.soft-dark-theme .help-section p {
+  color: #ced4da;
+}
+
+body.soft-dark-theme .help-section li {
+  color: #adb5bd;
+}
+
+body.soft-dark-theme .help-section strong {
+  color: #f8f9fa;
+}
+
+/* 柔和亮色主题下的功能介绍样式 */
+body.soft-light-theme .help-section {
+  border-bottom-color: #dee2e6;
+}
+
+body.soft-light-theme .help-section h4 {
+  color: #212529;
+}
+
+body.soft-light-theme .help-section p {
+  color: #495057;
+}
+
+body.soft-light-theme .help-section li {
+  color: #6c757d;
+}
+
+body.soft-light-theme .help-section strong {
+  color: #212529;
+}
+
+/* 各主题下的公式容器样式 */
+body.dark-theme .formula-container {
+  background: rgba(35, 134, 54, 0.1);
+  border-left-color: #2ea043;
+}
+
+body.dark-theme .formula-container code {
+  color: #7ee787;
+}
+
+body.blue-theme .formula-container {
+  background: rgba(59, 130, 246, 0.1);
+  border-left-color: #3b82f6;
+}
+
+body.blue-theme .formula-container code {
+  color: #93c5fd;
+}
+
+body.green-theme .formula-container {
+  background: rgba(34, 197, 94, 0.1);
+  border-left-color: #22c55e;
+}
+
+body.green-theme .formula-container code {
+  color: #86efac;
+}
+
+body.purple-theme .formula-container {
+  background: rgba(147, 51, 234, 0.1);
+  border-left-color: #a855f7;
+}
+
+body.purple-theme .formula-container code {
+  color: #d8b4fe;
+}
+
+body.orange-theme .formula-container {
+  background: rgba(249, 115, 22, 0.1);
+  border-left-color: #f97316;
+}
+
+body.orange-theme .formula-container code {
+  color: #fdba74;
+}
+
+body.soft-dark-theme .formula-container {
+  background: rgba(128, 128, 128, 0.1);
+  border-left-color: #81c784;
+}
+
+body.soft-dark-theme .formula-container code {
+  color: #a5d6a7;
+}
+
+body.soft-light-theme .formula-container {
+  background: rgba(108, 117, 125, 0.08);
+  border-left-color: #66bb6a;
+}
+
+body.soft-light-theme .formula-container code {
+  color: #2e7d32;
 }

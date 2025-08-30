@@ -122,6 +122,22 @@ class DatabaseManager {
         this.db.exec('ALTER TABLE folders ADD COLUMN pinyin TEXT')
       }
       
+      // 添加访问统计相关字段
+      if (!columnNames.includes('access_count')) {
+        console.log('添加access_count列...')
+        this.db.exec('ALTER TABLE folders ADD COLUMN access_count INTEGER DEFAULT 0')
+      }
+      
+      if (!columnNames.includes('last_accessed')) {
+        console.log('添加last_accessed列...')
+        this.db.exec('ALTER TABLE folders ADD COLUMN last_accessed DATETIME')
+      }
+      
+      if (!columnNames.includes('access_score')) {
+        console.log('添加access_score列...')
+        this.db.exec('ALTER TABLE folders ADD COLUMN access_score REAL DEFAULT 0')
+      }
+      
       console.log('数据库迁移完成')
     } catch (err) {
       console.error('数据库迁移失败:', err)
@@ -129,13 +145,59 @@ class DatabaseManager {
     }
   }
 
-  getFolders() {
+  getFolders(sortBy = 'smart') {
     if (!this.db) {
       throw new Error('数据库未初始化，请先调用init()方法')
     }
     
     try {
-      const sql = 'SELECT * FROM folders ORDER BY created_at DESC'
+      let sql
+      
+      switch (sortBy) {
+        case 'smart':
+          // 智能排序：优化的多因子加权算法
+          sql = `
+            SELECT *, 
+              CASE 
+                WHEN access_count = 0 THEN 0
+                ELSE (
+                  -- 基础频率分数 (权重40%)
+                  (access_count * 1.0) * 0.4 + 
+                  -- 时间衰减分数 (权重30%)
+                  CASE 
+                    WHEN last_accessed IS NULL THEN 0
+                    ELSE (
+                      -- 改进的时间衰减：使用指数衰减函数
+                      EXP(-0.05 * (julianday('now') - julianday(last_accessed))) * 10
+                    )
+                  END * 0.3 +
+                  -- 累积分数 (权重30%)
+                  (access_score * 0.1) * 0.3
+                )
+              END as smart_score
+            FROM folders 
+            ORDER BY smart_score DESC, created_at DESC
+          `
+          break
+        case 'frequency':
+          // 按访问频率排序
+          sql = 'SELECT * FROM folders ORDER BY access_count DESC, created_at DESC'
+          break
+        case 'recent':
+          // 按最近访问时间排序
+          sql = 'SELECT * FROM folders ORDER BY last_accessed DESC, created_at DESC'
+          break
+        case 'name':
+          // 按名称排序
+          sql = 'SELECT * FROM folders ORDER BY name ASC'
+          break
+        case 'created':
+        default:
+          // 按创建时间排序
+          sql = 'SELECT * FROM folders ORDER BY created_at DESC'
+          break
+      }
+      
       const stmt = this.db.prepare(sql)
       return stmt.all()
     } catch (err) {
@@ -240,12 +302,25 @@ class DatabaseManager {
     }
   }
 
+  /**
+   * 根据路径获取文件夹
+   */
+  getFolderByPath(folderPath) {
+    try {
+      const stmt = this.db.prepare('SELECT * FROM folders WHERE path = ?')
+      return stmt.get(folderPath)
+    } catch (error) {
+      console.error('根据路径获取文件夹失败:', error)
+      return null
+    }
+  }
+
   searchFolders(keyword) {
     try {
       const sql = `
         SELECT * FROM folders 
         WHERE name LIKE ? OR path LIKE ? OR pinyin LIKE ?
-        ORDER BY created_at DESC
+        ORDER BY access_count DESC, created_at DESC
       `
       
       const searchTerm = `%${keyword}%`
@@ -255,6 +330,80 @@ class DatabaseManager {
     } catch (err) {
       console.error('搜索文件夹失败:', err)
       throw err
+    }
+  }
+
+  // 记录文件夹访问
+  recordAccess(folderId) {
+    try {
+      if (!this.db) {
+        throw new Error('数据库未初始化')
+      }
+      
+      // 获取当前访问统计
+      const getCurrentStmt = this.db.prepare('SELECT access_count, last_accessed FROM folders WHERE id = ?')
+      const current = getCurrentStmt.get(folderId)
+      
+      if (!current) {
+        console.warn('文件夹不存在:', folderId)
+        return false
+      }
+      
+      const newAccessCount = (current.access_count || 0) + 1
+      const now = new Date().toISOString()
+      
+      // 优化的访问分数计算（改进的时间衰减机制）
+      let accessScore = newAccessCount
+      
+      // 如果有上次访问时间，使用指数衰减函数
+      if (current.last_accessed) {
+        const lastAccess = new Date(current.last_accessed)
+        const timeDiff = (Date.now() - lastAccess.getTime()) / (1000 * 60 * 60 * 24) // 天数
+        
+        // 使用指数衰减：更自然的时间衰减曲线
+        const timeDecayFactor = Math.exp(-0.05 * timeDiff)
+        // 结合频率和时间衰减的综合分数
+        accessScore = newAccessCount * (0.7 + 0.3 * timeDecayFactor)
+      }
+      
+      // 更新访问统计
+      const updateStmt = this.db.prepare(`
+        UPDATE folders 
+        SET access_count = ?, last_accessed = ?, access_score = ?
+        WHERE id = ?
+      `)
+      
+      const result = updateStmt.run(newAccessCount, now, accessScore, folderId)
+      
+      console.log(`文件夹 ${folderId} 访问记录更新成功，访问次数: ${newAccessCount}，分数: ${accessScore.toFixed(2)}`)
+      return result.changes > 0
+    } catch (err) {
+      console.error('记录访问失败:', err)
+      return false
+    }
+  }
+
+  // 获取访问统计
+  getAccessStats() {
+    try {
+      if (!this.db) {
+        throw new Error('数据库未初始化')
+      }
+      
+      const stmt = this.db.prepare(`
+        SELECT 
+          COUNT(*) as total_folders,
+          SUM(access_count) as total_accesses,
+          AVG(access_count) as avg_accesses,
+          MAX(access_count) as max_accesses,
+          COUNT(CASE WHEN access_count > 0 THEN 1 END) as accessed_folders
+        FROM folders
+      `)
+      
+      return stmt.get()
+    } catch (err) {
+      console.error('获取访问统计失败:', err)
+      return null
     }
   }
 

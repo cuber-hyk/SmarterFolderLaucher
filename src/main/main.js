@@ -3,6 +3,7 @@ const { autoUpdater } = require('electron-updater')
 const path = require('path')
 const fs = require('fs')
 const Database = require('../database/database')
+const WindowsRegistry = require('./windowsRegistry')
 
 const isDev = process.env.NODE_ENV === 'development' || !app.isPackaged
 
@@ -14,10 +15,16 @@ class SmarterFolderLauncher {
     this.isQuitting = false
     this.currentHotkey = 'Alt+F'
     this.currentAddFolderHotkey = 'CommandOrControl+Alt+A'
+    this.windowsRegistry = new WindowsRegistry()
+    this.pendingFolderPath = null
   }
 
   async init() {
     console.log('SmarterFolderLauncher 开始初始化...')
+    
+    // 处理命令行参数
+    this.handleCommandLineArgs()
+    
     await this.initDatabase()
     console.log('数据库初始化完成，继续其他初始化...')
     this.createWindow()
@@ -25,6 +32,15 @@ class SmarterFolderLauncher {
     this.registerGlobalShortcuts()
     this.setupIpcHandlers()
     this.initAutoUpdater()
+    
+    // 注册Windows右键菜单
+    await this.registerWindowsContextMenu()
+    
+    // 如果有待添加的文件夹，处理它
+    if (this.pendingFolderPath) {
+      await this.handleContextMenuFolder(this.pendingFolderPath)
+    }
+    
     console.log('SmarterFolderLauncher 初始化完成')
   }
 
@@ -77,13 +93,17 @@ class SmarterFolderLauncher {
 
   createWindow() {
     this.mainWindow = new BrowserWindow({
-      width: 400,
-      height: 500,
+      width: 450,
+      height: 600,
+      minWidth: 350,
+      minHeight: 400,
+      maxWidth: 800,
+      maxHeight: 1000,
       frame: false,
       transparent: true,
       alwaysOnTop: true,
       skipTaskbar: true,
-      resizable: false,
+      resizable: true,
       show: false,
       webPreferences: {
         nodeIntegration: false,
@@ -255,11 +275,27 @@ class SmarterFolderLauncher {
     })
 
     // 文件夹操作
-    ipcMain.handle('get-folders', async () => {
+    ipcMain.handle('get-folders', async (event, sortBy = 'smart') => {
       if (this.database) {
-        return await this.database.getFolders()
+        return await this.database.getFolders(sortBy)
       }
       return []
+    })
+
+    // 记录文件夹访问
+    ipcMain.handle('record-access', async (event, folderId) => {
+      if (this.database) {
+        return await this.database.recordAccess(folderId)
+      }
+      return false
+    })
+
+    // 获取访问统计
+    ipcMain.handle('get-access-stats', async () => {
+      if (this.database) {
+        return await this.database.getAccessStats()
+      }
+      return null
     })
 
     ipcMain.handle('add-folder', async (event, folderData) => {
@@ -392,6 +428,19 @@ class SmarterFolderLauncher {
         console.error('打开外部链接失败:', error)
         return { success: false, error: error.message }
       }
+    })
+
+    // Windows右键菜单相关
+    ipcMain.handle('register-context-menu', async () => {
+      return await this.windowsRegistry.registerContextMenu()
+    })
+
+    ipcMain.handle('unregister-context-menu', async () => {
+      return await this.windowsRegistry.unregisterContextMenu()
+    })
+
+    ipcMain.handle('is-context-menu-registered', async () => {
+      return await this.windowsRegistry.isContextMenuRegistered()
     })
   }
 
@@ -530,6 +579,91 @@ class SmarterFolderLauncher {
     if (this.mainWindow && this.mainWindow.webContents) {
       this.mainWindow.webContents.send('open-settings-page')
     }
+  }
+
+  /**
+   * 处理命令行参数
+   */
+  handleCommandLineArgs() {
+    // 检查是否有文件夹路径参数
+    const args = process.argv.slice(2)
+    if (args.length > 0 && args[0] !== '.' && !args[0].startsWith('--')) {
+      this.pendingFolderPath = args[0]
+      console.log('检测到命令行参数文件夹路径:', this.pendingFolderPath)
+    }
+  }
+
+  /**
+   * 获取随机颜色
+   */
+  getRandomColor() {
+    const colors = [
+      '#007acc', '#ff6b6b', '#4ecdc4', '#45b7d1',
+      '#96ceb4', '#feca57', '#ff9ff3', '#54a0ff'
+    ]
+    return colors[Math.floor(Math.random() * colors.length)]
+  }
+
+  /**
+   * 注册Windows右键菜单
+   */
+  async registerWindowsContextMenu() {
+    if (process.platform === 'win32') {
+      try {
+        const result = await this.windowsRegistry.registerContextMenu()
+        console.log('Windows右键菜单注册结果:', result)
+        return result
+      } catch (error) {
+        console.error('注册Windows右键菜单失败:', error)
+        return { success: false, message: error.message }
+      }
+    }
+    return { success: false, message: '仅支持Windows系统' }
+  }
+
+  /**
+   * 处理从右键菜单添加文件夹
+   */
+  async handleContextMenuFolder(folderPath) {
+    if (!folderPath || !this.database) {
+      return false
+    }
+
+    try {
+      // 检查文件夹是否存在
+      if (!fs.existsSync(folderPath)) {
+        console.log('文件夹不存在:', folderPath)
+        return false
+      }
+
+      // 检查是否已经添加过
+      const existingFolder = await this.database.getFolderByPath(folderPath)
+      if (existingFolder) {
+        console.log('文件夹已存在:', folderPath)
+        return true
+      }
+
+      // 添加文件夹
+      const folderName = path.basename(folderPath)
+      const folderData = {
+        name: folderName,
+        path: folderPath,
+        color: this.getRandomColor()
+      }
+
+      const result = await this.database.addFolder(folderData)
+      if (result) {
+        console.log('从右键菜单添加文件夹成功:', folderPath)
+        // 通知渲染进程更新文件夹列表
+        if (this.mainWindow) {
+          this.mainWindow.webContents.send('folder-added', result)
+        }
+        return true
+      }
+    } catch (error) {
+      console.error('处理右键菜单文件夹失败:', error)
+    }
+    return false
   }
 }
 

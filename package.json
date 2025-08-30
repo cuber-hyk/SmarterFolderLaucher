@@ -1,17 +1,19 @@
 {
   "name": "smarter-folder-launcher",
-  "version": "1.1.0",
+  "version": "2.1.0",
   "description": "智能文件夹启动器 - 快速访问常用文件夹",
   "main": "src/main/main.js",
   "scripts": {
     "dev": "concurrently \"npm run dev:renderer\" \"npm run dev:main\"",
     "dev:renderer": "vite",
     "dev:main": "electron src/main/main.js",
-    "build": "npm run build:renderer && npm run app:dist",
-    "build:renderer": "vite build",
-    "app:dist": "electron-builder",
     "start": "electron src/main/main.js",
-    "app:dir": "electron-builder --dir"
+    "build:renderer": "vite build",
+    "build:dir": "npm run build:renderer && electron-builder --dir",
+    "build:win": "npm run build:renderer && electron-builder --win",
+    "build:mac": "npm run build:renderer && electron-builder --mac",
+    "build:linux": "npm run build:renderer && electron-builder --linux",
+    "build:all": "npm run build:renderer && electron-builder --win --mac --linux"
   },
   "keywords": [
     "electron",
@@ -69,6 +71,27 @@
       "target": "nsis",
       "appId": "com.example.smarterfolderlauncher",
       "icon": "./assets/icon.ico"
+    },
+    "mac": {
+      "target": "dmg",
+      "appId": "com.example.smarterfolderlauncher",
+      "icon": "./assets/icon.png",
+      "category": "public.app-category.productivity"
+    },
+    "linux": {
+      "target": [
+        {
+          "target": "AppImage",
+          "arch": ["x64"]
+        },
+        {
+          "target": "deb",
+          "arch": ["x64"]
+        }
+      ],
+      "appId": "com.example.smarterfolderlauncher",
+      "icon": "./assets/icon.png",
+      "category": "Utility"
     },
     "nsis": {
       "oneClick": false,

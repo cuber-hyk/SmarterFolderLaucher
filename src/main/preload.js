@@ -7,12 +7,16 @@ contextBridge.exposeInMainWorld('electronAPI', {
   minimizeWindow: () => ipcRenderer.invoke('minimize-window'),
   
   // 文件夹操作
-  getFolders: () => ipcRenderer.invoke('get-folders'),
+  getFolders: (sortBy) => ipcRenderer.invoke('get-folders', sortBy),
   addFolder: (folderData) => ipcRenderer.invoke('add-folder', folderData),
   updateFolder: (id, folderData) => ipcRenderer.invoke('update-folder', id, folderData),
   deleteFolder: (id) => ipcRenderer.invoke('delete-folder', id),
   openFolder: (folderPath) => ipcRenderer.invoke('open-folder', folderPath),
   selectFolder: () => ipcRenderer.invoke('select-folder'),
+  
+  // 访问统计
+  recordAccess: (folderId) => ipcRenderer.invoke('record-access', folderId),
+  getAccessStats: () => ipcRenderer.invoke('get-access-stats'),
   
   // 设置
   openSettings: () => ipcRenderer.invoke('open-settings'),
@@ -28,6 +32,11 @@ contextBridge.exposeInMainWorld('electronAPI', {
   
   // 外部链接
   openExternal: (url) => ipcRenderer.invoke('open-external', url),
+  
+  // Windows右键菜单
+  registerContextMenu: () => ipcRenderer.invoke('register-context-menu'),
+  unregisterContextMenu: () => ipcRenderer.invoke('unregister-context-menu'),
+  isContextMenuRegistered: () => ipcRenderer.invoke('is-context-menu-registered'),
   
   // 平台信息
   platform: process.platform
