@@ -569,6 +569,51 @@ class SmarterFolderLauncher {
         return { success: false, error: "打开终端失败" };
       }
     });
+
+    // 在Git Bash中打开文件夹
+    ipcMain.handle("open-folder-in-gitbash", async (event, folderPath, gitBashPath) => {
+      try {
+        const { spawn } = require("child_process");
+        
+        // 验证Git Bash路径是否存在
+        if (!fs.existsSync(gitBashPath)) {
+          return { success: false, error: "Git Bash路径不存在，请重新配置" };
+        }
+        
+        // 启动Git Bash并切换到指定目录
+        spawn(gitBashPath, [`--cd=${folderPath}`], {
+          detached: true,
+          stdio: "ignore"
+        });
+        
+        return { success: true };
+      } catch (error) {
+        console.error("在Git Bash中打开文件夹失败:", error);
+        return { success: false, error: "打开Git Bash失败，请检查路径配置" };
+      }
+    });
+
+    // 选择Git Bash路径
+    ipcMain.handle("select-gitbash-path", async () => {
+      try {
+        const result = await dialog.showOpenDialog(this.mainWindow, {
+          properties: ["openFile"],
+          filters: [
+            { name: "Git Bash", extensions: ["exe"] },
+            { name: "All Files", extensions: ["*"] }
+          ],
+          defaultPath: path.join(process.env.PROGRAMFILES || "", "Git", "bin", "bash.exe")
+        });
+        
+        if (!result.canceled && result.filePaths.length > 0) {
+          return result.filePaths[0];
+        }
+        return null;
+      } catch (error) {
+        console.error("选择Git Bash路径失败:", error);
+        return null;
+      }
+    });
   }
 
   showWindow() {

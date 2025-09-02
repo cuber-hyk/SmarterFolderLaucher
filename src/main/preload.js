@@ -41,6 +41,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
   // 在外部应用中打开文件夹
   openFolderInVSCode: (folderPath) => ipcRenderer.invoke('open-folder-in-vscode', folderPath),
   openFolderInTerminal: (folderPath) => ipcRenderer.invoke('open-folder-in-terminal', folderPath),
+  openFolderInGitBash: (folderPath, gitBashPath) => ipcRenderer.invoke('open-folder-in-gitbash', folderPath, gitBashPath),
+  selectGitBashPath: () => ipcRenderer.invoke('select-gitbash-path'),
   
   // 平台信息
   platform: process.platform

@@ -109,6 +109,12 @@
         </svg>
         在终端中打开
       </div>
+      <div class="context-menu-item" @click="openFolderInGitBash(contextMenu.folder)" :class="{ disabled: !settings.gitBashPath }">
+        <svg width="14" height="14" viewBox="0 0 16 16">
+          <path fill="currentColor" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/>
+        </svg>
+        在 Git Bash 中打开
+      </div>
       <div class="context-menu-divider"></div>
       <div class="context-menu-item" @click="editFolder(contextMenu.folder)">
         <svg width="14" height="14" viewBox="0 0 16 16">
@@ -288,6 +294,26 @@
             </label>
             <small>在文件夹右键菜单中添加"添加到项目"选项</small>
             <small style="color: #ff9800; margin-top: 4px; display: block;">⚠️ 需要管理员权限：请以管理员身份运行应用程序</small>
+          </div>
+          <div class="setting-item">
+            <label>Git Bash 路径配置</label>
+            <div style="display: flex; gap: 8px; align-items: center;">
+              <input 
+                type="text" 
+                v-model="settings.gitBashPath"
+                placeholder="请输入 Git Bash 可执行文件路径..."
+                style="flex: 1;"
+              >
+              <button 
+                class="btn btn-save"
+                @click="selectGitBashPath"
+                style="padding: 6px 12px; font-size: 12px;"
+              >
+                浏览
+              </button>
+            </div>
+            <small>配置 Git Bash 路径后可在右键菜单中使用"在 Git Bash 中打开"功能</small>
+            <small v-if="!settings.gitBashPath" style="color: #ff9800; margin-top: 4px; display: block;">⚠️ 未配置 Git Bash 路径，无法使用 Git Bash 打开功能</small>
           </div>
           <div class="setting-item">
             <label>应用更新</label>
@@ -530,7 +556,8 @@ export default {
         showOnStartup: true,
         globalHotkey: 'Ctrl+Alt+F',
         addFolderHotkey: 'Ctrl+Alt+A',
-        contextMenuEnabled: false
+        contextMenuEnabled: false,
+        gitBashPath: ''
       },
       updateInfo: {
         checking: false,
@@ -839,6 +866,38 @@ export default {
       }
     },
     
+    async openFolderInGitBash(folder) {
+      if (!this.settings.gitBashPath) {
+        alert('请先在设置中配置 Git Bash 路径')
+        this.hideContextMenu()
+        return
+      }
+      
+      try {
+        const result = await window.electronAPI.openFolderInGitBash(folder.path, this.settings.gitBashPath)
+        if (!result.success) {
+          alert(result.error || '打开Git Bash失败，请检查路径配置')
+        }
+        this.hideContextMenu()
+      } catch (error) {
+        console.error('在Git Bash中打开文件夹失败:', error)
+        alert('打开Git Bash失败，请检查路径配置')
+        this.hideContextMenu()
+      }
+    },
+    
+    async selectGitBashPath() {
+      try {
+        const result = await window.electronAPI.selectGitBashPath()
+        if (result) {
+          this.settings.gitBashPath = result
+        }
+      } catch (error) {
+        console.error('选择Git Bash路径失败:', error)
+        alert('选择Git Bash路径失败')
+      }
+    },
+    
     closeWindow() {
       window.electronAPI.closeWindow()
     },
@@ -881,6 +940,11 @@ export default {
       try {
         // 保存到本地存储
         localStorage.setItem('appSettings', JSON.stringify(this.settings))
+        
+        // 保存Git Bash路径到数据库
+        if (window.electronAPI && window.electronAPI.saveSetting) {
+          await window.electronAPI.saveSetting('gitBashPath', this.settings.gitBashPath || '')
+        }
         
         // 更新主进程的全局快捷键
         if (window.electronAPI && window.electronAPI.updateHotkey) {
@@ -941,6 +1005,18 @@ export default {
             if (window.electronAPI && window.electronAPI.updateAddFolderHotkey) {
               await window.electronAPI.updateAddFolderHotkey(this.settings.addFolderHotkey)
             }
+          }
+        }
+        
+        // 从数据库加载Git Bash路径
+        if (window.electronAPI && window.electronAPI.getSetting) {
+          try {
+            const gitBashPath = await window.electronAPI.getSetting('gitBashPath')
+            if (gitBashPath) {
+              this.settings.gitBashPath = gitBashPath
+            }
+          } catch (error) {
+            console.error('加载Git Bash路径失败:', error)
           }
         }
       } catch (error) {
@@ -1213,6 +1289,17 @@ export default {
 .context-menu-item-danger:hover {
   background-color: #ffebee;
   color: #c62828;
+}
+
+.context-menu-item.disabled {
+  color: #999;
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.context-menu-item.disabled:hover {
+  background-color: transparent;
+  color: #999;
 }
 
 .context-menu-divider {

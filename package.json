@@ -1,6 +1,6 @@
 {
   "name": "smarter-folder-launcher",
-  "version": "2.1.0",
+  "version": "2.2.0",
   "description": "智能文件夹启动器 - 快速访问常用文件夹",
   "main": "src/main/main.js",
   "scripts": {
